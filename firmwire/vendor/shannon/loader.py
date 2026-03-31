@@ -15,16 +15,18 @@ from .TOCFile import *
 from avatar2 import *
 
 import firmwire.vendor.shannon as shannon
-import firmwire.vendor.shannon.mpu
-import firmwire.vendor.shannon.soc
+import firmwire.vendor.shannon.lte.mpu
+import firmwire.vendor.shannon.lte.soc
 
 from firmwire.hw.soc import get_soc
-from .hw import *
+from .lte.hw import *
+from .nr.hw import *
 from firmwire.hw.glink import GLinkPeripheral
 from firmwire.emulator.patterndb import PatternDB, PatternDBEntry
 from .machine import ShannonMachine
 from .pattern import PATTERNS_COMMON, PATTERNS_CORTEX_R, PATTERNS_CORTEX_A
-from .soc import CORTEX_R_SOC, CORTEX_A_SOC
+from .lte.soc import CORTEX_R_SOC
+from .nr.soc import CORTEX_A_SOC
 
 log = logging.getLogger(__name__)
 
@@ -133,8 +135,8 @@ class ShannonLoader(firmwire.loader.Loader):
         # MPU/MMU Memory Map
         #######################
 
-        if self.modem_soc.name == "S5123":
-            from firmwire.vendor.shannon.mmu import MMUEntry
+        if self.modem_soc.name in CORTEX_A_SOC:
+            from firmwire.vendor.shannon.nr.mmu import MMUEntry, MMUEntry2
             modem_main = self.modem_file.get_section("MAIN")
             sym = self.symbol_table.lookup("main_mmu_table")
             if sym is None:
@@ -143,7 +145,10 @@ class ShannonLoader(firmwire.loader.Loader):
                 )
                 return False
 
-            mem_entries, unsafe_regions = shannon.mmu.parse_mmu_table(modem_main, sym.address)
+            if self.modem_soc.name == "S5123":
+                mem_entries, unsafe_regions = shannon.nr.mmu.parse_mmu_table(modem_main, sym.address, MMUEntry)
+            else:
+                mem_entries, unsafe_regions = shannon.nr.mmu.parse_mmu_table(modem_main, sym.address, MMUEntry2)
             # To inject task
             mem_entries.append(
                 MMUEntry(1313, 0x70000000, 0x00100000, 0x11c0c),
@@ -158,9 +163,9 @@ class ShannonLoader(firmwire.loader.Loader):
                 )
                 return False
 
-            mem_entries = shannon.mpu.parse_mpu_table(modem_main, sym.address)
+            mem_entries = shannon.lte.mpu.parse_mpu_table(modem_main, sym.address)
 
-        table = shannon.mpu.consolidate_mpu_table(mem_entries)
+        table = shannon.lte.mpu.consolidate_mpu_table(mem_entries)
         self.mpu_table = table
 
         for entry in table:
@@ -222,8 +227,8 @@ class ShannonLoader(firmwire.loader.Loader):
 
         for i in range(self.modem_soc.NUM_TIMERS):
             freq = 6000000
-            if i == 0:
-                freq = 100000
+            if i in (0, 1):
+                freq = 1000
             self.create_timer(
                 self.modem_soc.TIMER_BASE + i * 0x100, 0x100,
                 "tim{}".format(i), self.modem_soc.iTINT0 + i, freq,
@@ -256,6 +261,14 @@ class ShannonLoader(firmwire.loader.Loader):
             self.create_peripheral(Unknown2Peripheral, 0x81020000, 0x1000, name="unk_per8")
             self.create_peripheral(CyclicBitPeripheral, 0x14500000, 0x5000, name="marconi")
             self.create_peripheral(CyclicBitPeripheral, 0x14420000, 0x1000, name="marconi2")
+        elif self.modem_soc.name in ("S5123AP", ):
+            self.create_mc_timer(0x840f0000, 0x1000)
+            self.create_peripheral(UARTPeripheral, 0x84010000, 0x1000, name='uart2')
+            self.create_peripheral(SysCfgPeripheral, 0x82000000, 0x1000, name="SYSCFG")
+            self.create_peripheral(CyclicBitPeripheral, 0x8a100000, 0x5000, name="marconi")
+            self.create_peripheral(CyclicBitPeripheral, 0x8a020000, 0x1000, name="marconi2")
+            self.create_peripheral(Unknown12Peripheral, 0x8f910000, 0x1000, name="unk_per12")
+            
 
         if self.modem_file.has_section("NV"):
             nv = self.modem_file.get_section("NV")

@@ -1,14 +1,12 @@
 from avatar2 import *
 
-from firmwire.vendor.shannon.hw import LoggingPeripheral
+from . import LoggingPeripheral
 
 
-class MsiPeripheral(LoggingPeripheral):
+class SysCfgPeripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0x50:
-            value = 0x10000
-            offset_name = f"{offset:x}"
-            self.log_read(value, size, offset_name)
+        if offset == 0x4:
+            value = 0x51230000
         else:
             value = super().hw_read(offset, size)
 

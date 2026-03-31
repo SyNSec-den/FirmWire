@@ -226,28 +226,52 @@ def find_exception_switch(data, offset):
 
     return None
 
-
+# S5123 is the first string found
+# S5123AP:G991BXXSIHYK1 is the second string found
 def find_queue_table(data, offset):
     bp = BinaryPattern("queue_name", offset=1)
     bp.from_str(b"\x00AdcTask\x00")
 
-    loc = bp.find(data)
+    # Find the null terminated strings like 'task'
+    locs = []
+    npos = 0
 
-    if loc is None:
+    # Iteratively mark the positions of the matching patterns.
+    while True:
+        res = bp.find(data, pos=npos)
+        if res is None:
+            break
+
+        npos = res[1]
+        locs += [res]
+    
+    
+    if len(locs) == 0:
         return None
 
-    xref_target = loc[0] + offset
+    if locs is None:
+        return None
+
+    xref_target = locs[0][0] + offset # absolute address in memory
 
     bp_x = BinaryPattern("xref")
     bp_x.from_str(struct.pack("I", xref_target))
-    rez = bp_x.find(data)
+    rez = bp_x.findall(data, maxresults=2)
 
+    if rez is None or len(rez) < 1:
+        # Try again but on the other string reference.
+        # It appears that S5123AP:G991BXXSIHYK1 uses locs[1][0] instead of locs[0][0] 
+        xref_target = locs[1][0] + offset
+        bp_task_x = BinaryPattern("xref")
+        bp_task_x.from_str(struct.pack("I", xref_target))
+        rez = bp_task_x.findall(data, maxresults=2)
     if rez is None:
         return None
 
-    ptr = rez[0]
+    ptr = rez[0][0] # first reference for both
 
     # AdcTask's queue is the third item in the list (might not be stable)
+    # Stable for S5123AP:G991BXXSIHYK1
     ptr -= QUEUE_STRUCT_SIZE * 2
 
     return offset + ptr
@@ -305,8 +329,8 @@ def decode_thumb_bl_target(insn, insn_addr):
     else:
         imm32 = imm25
 
-    # In Thumb state, PC is instruction address + 4 (aligned to 4 bytes)
-    pc = (insn_addr + 4) & ~0x3
+    # In Thumb state, PC is instruction address + 4 (2-byte alignment)
+    pc = (insn_addr + 4) & ~0x1
 
     # Target address
     target = (pc + imm32) & 0xffffffff
@@ -315,7 +339,7 @@ def decode_thumb_bl_target(insn, insn_addr):
 
 def find_pal_sleep(data, offset):
     bp = BinaryPattern("pal_Sleep", offset=8)
-    bp.from_hex("4af22010 c0f20700 ?+ 44f64039 ?+ c0f24c09 ?+ 4846 ?+ 4846")  # oriole
+    bp.from_hex("4af22010 c0f20700 ?+ 44f640?? ?+ c0f24c?? 00?? 0128 ?+ ??46 ?+ ??46")  # G991B, oriole
 
     locs = bp.findall(data)
     assert len(locs) == 1, f"Found more than one instance or failed to find any ({len(locs)})"
@@ -525,25 +549,36 @@ def find_task_table(data, offset):
     locs = []
     npos = 0
 
+    # Iteratively mark the positions of the matching patterns.
     while True:
         res = bp_task.find(data, pos=npos)
-
         if res is None:
             break
-
         npos = res[1]
         locs += [res]
-
+    
+    
     if len(locs) == 0:
         return None
+    
 
-    xref_target = locs[0][0] + offset
+    # Finds two locations of task
+    xref_target = locs[0][0] + offset 
 
     bp_task_x = BinaryPattern("xref")
-    bp_task_x.from_str(struct.pack("I", xref_target))
+    bp_task_x.from_str(struct.pack("I", xref_target)) 
+
     rez = bp_task_x.findall(data, maxresults=2)
 
-    if len(rez) < 2:
+    if rez is None or len(rez) < 2:
+        # Try again but on the other string reference.
+        # It appears that S5123AP:G991BXXSIHYK1 uses locs[1][0] instead of locs[0][0] 
+        xref_target = locs[1][0] + offset
+        bp_task_x = BinaryPattern("xref")
+        bp_task_x.from_str(struct.pack("I", xref_target))
+        rez = bp_task_x.findall(data, maxresults=2)
+    
+    if len(rez) < 2: 
         return None
 
     # the first result is another reference we dont care about

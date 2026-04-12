@@ -3,6 +3,7 @@ from firmwire.hw.soc import SOCPeripheral, register_soc
 from firmwire.vendor.shannon.common.hw import GicModel
 from firmwire.vendor.shannon.common.soc import ShannonSOC
 
+
 class S5123(ShannonSOC):
     peripherals = []
 
@@ -26,15 +27,22 @@ class S5123(ShannonSOC):
         super().__init__(date, main_section)
 
         self.peripherals += [
-            SOCPeripheral(DSPPeripheralCortexA, 0x4f45a000, 0x1000, name="DSPPeripheral", sync=[0xc1, 0x1c8]),
-            SOCPeripheral(self.CLK_PERIPHERAL,  0x10400000, 0x1000, name="SOC_CLK2"),
-            SOCPeripheral(self.CLK_PERIPHERAL,  0x12050000, 0x1000, name="SOC_CLK3"),
-            SOCPeripheral(SysCmuPeripheral,     0x83000000, 0x4000, name="SYS_CMU"),
-            SOCPeripheral(Unknown5Peripheral,   0x11861000, 0x1000, name="UNK5"),
-            SOCPeripheral(MsiPeripheral,        0x15000000, 0x1000, name="MSI"),
-            SOCPeripheral(Unknown7Peripheral,   0x10000000, 0x1000, name="UNK7"),
-            SOCPeripheral(Unknown11Peripheral,  0x83050000, 0x1000, name="UNK11"),
+            SOCPeripheral(
+                DSPPeripheralCortexA,
+                0x4F45A000,
+                0x1000,
+                name="DSPPeripheral",
+                sync=[0xC1, 0x1C8],
+            ),
+            SOCPeripheral(self.CLK_PERIPHERAL, 0x10400000, 0x1000, name="SOC_CLK2"),
+            SOCPeripheral(self.CLK_PERIPHERAL, 0x12050000, 0x1000, name="SOC_CLK3"),
+            SOCPeripheral(SysCmuPeripheral, 0x83000000, 0x4000, name="SYS_CMU"),
+            SOCPeripheral(Unknown5Peripheral, 0x11861000, 0x1000, name="UNK5"),
+            SOCPeripheral(MsiPeripheral, 0x15000000, 0x1000, name="MSI"),
+            SOCPeripheral(Unknown7Peripheral, 0x10000000, 0x1000, name="UNK7"),
+            SOCPeripheral(Unknown11Peripheral, 0x83050000, 0x1000, name="UNK11"),
         ]
+
 
 class S5123AP(ShannonSOC):
     peripherals = []
@@ -42,8 +50,8 @@ class S5123AP(ShannonSOC):
     CHIP_ID = 0x50000000
     SIPC_BASE = 0x8F940000
     SHM_BASE = 0x50000000
-    SOC_BASE = 0x82020000 
-    SOC_CLK_BASE = 0x8a000000 
+    SOC_BASE = 0x82020000
+    SOC_CLK_BASE = 0x8A000000
     CLK_PERIPHERAL = S5123APClkPeripheral
     SOC_PERIPHERAL = ShannonSOCPeripheralCortexA
     SHM_PERIPHERAL = SHMPeripheralCortexA
@@ -54,7 +62,6 @@ class S5123AP(ShannonSOC):
     iTINT0 = 32
 
     GIC_MODEL = GicModel.A15_MPCORE
-    
 
     name = "S5123AP"
 
@@ -64,10 +71,10 @@ class S5123AP(ShannonSOC):
         self.peripherals += [
             SOCPeripheral(
                 DSPPeripheralCortexA,
-                0x4a75a000, # G991BXXSIHYK1 DSP base
+                0x4A75A000,  # G991BXXSIHYK1 DSP base
                 0x1000,
                 name="DSPPeripheral",
-                sync=[0xc1, 0x1bc],
+                sync=[0xC1, 0x1BC],
             ),
         ]
 

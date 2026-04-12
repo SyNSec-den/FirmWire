@@ -12,7 +12,7 @@ memory_map = {
     "fmt_tx_tail": 0x0C,
     "fmt_rx_head": 0x10,
     "fmt_rx_tail": 0x14,
-    "raw_rx_tail": 0x1c,
+    "raw_rx_tail": 0x1C,
     "raw_rx_head": 0x18,
     "raw_tx_head": 0x20,
     "raw_tx_tail": 0x24,
@@ -42,7 +42,7 @@ class SHMPeripheralCortexA(FirmWirePeripheral):
 
         elif offset == 0x18:
             value = self.raw_rx_buff.head
-        elif offset == 0x1c:
+        elif offset == 0x1C:
             value = self.raw_rx_buff.tail
         elif offset == 0x20:
             value = self.raw_tx_buff.head
@@ -55,7 +55,7 @@ class SHMPeripheralCortexA(FirmWirePeripheral):
             value = 0
         elif offset == 0x68:  # CTP offset
             value = 0
-        elif offset == 0x6c:  # BUFFDESC offset
+        elif offset == 0x6C:  # BUFFDESC offset
             value = 0
         elif offset == 0x70:  # CAPA offset
             value = 0
@@ -112,7 +112,7 @@ class SHMPeripheralCortexA(FirmWirePeripheral):
             self.raw_rx_buff.head = value
             # TODO: dequeue elsewhere for handling
             self.raw_rx_buff.dequeue()
-        elif offset == 0x1c:
+        elif offset == 0x1C:
             self.raw_rx_buff.tail = value
 
         else:

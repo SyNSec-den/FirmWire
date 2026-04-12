@@ -3,8 +3,14 @@ import struct
 from firmwire.vendor.shannon.common.mem import MemEntry
 
 AP_STR = {
-    0b000: "--", 0b001: "rw", 0b010: "rw", 0b011: "rw",
-    0b100: "--", 0b101: "r-", 0b110: "r-", 0b111: "r-"
+    0b000: "--",
+    0b001: "rw",
+    0b010: "rw",
+    0b011: "rw",
+    0b100: "--",
+    0b101: "r-",
+    0b110: "r-",
+    0b111: "r-",
 }
 
 
@@ -35,6 +41,7 @@ class MMUEntry(MemEntry):
             self.get_start(), self.get_end(), self.slot, self.prot
         )
 
+
 """
 struct MMUEntry2 {
 	// Virtual start address of this section
@@ -47,6 +54,8 @@ struct MMUEntry2 {
 	uint32_t flags;
 };
 """
+
+
 class MMUEntry2(MemEntry):
     def __init__(self, slot, base, size, flags):
         super().__init__(base, size, flags, slot)
@@ -74,6 +83,7 @@ class MMUEntry2(MemEntry):
             self.get_start(), self.get_end(), self.slot, self.prot
         )
 
+
 def extract_prot_from_flags(flags):
     ap = ((flags >> 10) & 3) | ((flags >> 13) & 4)
     prot = AP_STR[ap]
@@ -97,9 +107,9 @@ def parse_mmu_table(modem_main, address, entry_cls):
 
     slot = 0
     while True:
-        array = data[address: address + 0x10]
+        array = data[address : address + 0x10]
         entry = entry_cls.unpack(slot, array)
-        
+
         if entry is None:
             break
 

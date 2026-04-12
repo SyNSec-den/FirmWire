@@ -196,6 +196,7 @@ def TCC_Task_Ready_To_Scheduled_Return(self, env, tb, hook):
     if task != 0:
         self._current_task_name = self.read_phy_string(task + 0x10).decode()
 
+
 def msg_send_hook(self, env, tb, param3):
     ra = self.qemu.pypanda.arch.get_reg(env, "ra")
     struct_addr = self.qemu.pypanda.arch.get_reg(env, "a0")
@@ -225,7 +226,7 @@ def msg_send_hook(self, env, tb, param3):
 
 def gsmtap_uplink_errc_dcch_data(self, cpu, msg_struct_addr):
     """
-        Parser for MSG_ID_RATDM_EPDCP_DATA_REQ
+    Parser for MSG_ID_RATDM_EPDCP_DATA_REQ
     """
     expected_msg_id = self.loader.msg_ids["MSG_ID_ERRC_EPDCP_DCCH_DATA_REQ"]
 
@@ -255,7 +256,7 @@ def gsmtap_uplink_errc_dcch_data(self, cpu, msg_struct_addr):
 
 def gsmtap_downlink_errc_dcch_data(self, cpu, msg_struct_addr):
     """
-        Parser for MSG_ID_ERRC_EPDCP_DCCH_DATA_IND
+    Parser for MSG_ID_ERRC_EPDCP_DCCH_DATA_IND
     """
     expected_msg_id = self.loader.msg_ids["MSG_ID_ERRC_EPDCP_DCCH_DATA_IND"]
     msg_id = int.from_bytes(

@@ -31,6 +31,7 @@ memory_map = {
 
 memory_map_inv = dict([[v, k] for k, v in memory_map.items()])
 
+
 # exact map to drivers/misc/modem_v1/link_device_memory.h
 # struct __packed shmem_4mb_phys_map
 class SHMPeripheral(FirmWirePeripheral):

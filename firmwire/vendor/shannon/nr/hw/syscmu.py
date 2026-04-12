@@ -5,7 +5,7 @@ from . import LoggingPeripheral
 
 class SysCmuPeripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0x10c or offset == 0x14c:
+        if offset == 0x10C or offset == 0x14C:
             value = super().hw_read(offset, size)
             value = value | 0x20000000
             offset_name = "UNK"

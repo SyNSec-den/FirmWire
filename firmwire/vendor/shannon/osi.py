@@ -41,7 +41,9 @@ class ShannonOSI:
             if sym is None:
                 return "ERROR_MISSING_SYM"
 
-            p_task_struct = struct.unpack("I", self.panda.physical_memory_read(sym.address, 4))[0]
+            p_task_struct = struct.unpack(
+                "I", self.panda.physical_memory_read(sym.address, 4)
+            )[0]
             if p_task_struct == 0 or p_task_struct == 0x50505050:
                 return "NO_TASK"
             return read_cstring_panda(self.panda, p_task_struct + 0x24, max_length=9)

@@ -5,7 +5,7 @@ from . import LoggingPeripheral
 
 class Unknown5Peripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0x84 or offset == 0x104 or offset == 0x184 or offset == 0xb84:
+        if offset == 0x84 or offset == 0x104 or offset == 0x184 or offset == 0xB84:
             # something != 0
             value = 1
             offset_name = "UNK"
@@ -48,7 +48,7 @@ class Unknown6Peripheral(LoggingPeripheral):
 
 class Unknown7Peripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0x11c:
+        if offset == 0x11C:
             value = 3
             offset_name = "UNK"
             self.log_read(value, size, offset_name)
@@ -92,9 +92,9 @@ class Unknown9Peripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
         if offset == 0x50:
             value = 0x1000000  # value & 0x1000000 != 0
-        elif offset == 0xb4:
+        elif offset == 0xB4:
             value = 0x40000  # value & 0x40000 >= 1
-        elif offset == 0x3cc:
+        elif offset == 0x3CC:
             value = 0x1  # value & 1 != 0
         else:
             value = super().hw_read(offset, size)
@@ -113,7 +113,7 @@ class Unknown9Peripheral(LoggingPeripheral):
 
 class Unknown10Peripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0xf0:
+        if offset == 0xF0:
             value = 0x1  # value & 1 != 0
         else:
             value = super().hw_read(offset, size)
@@ -156,6 +156,8 @@ class Unknown11Peripheral(LoggingPeripheral):
   uVar3 = *puVar4;
   while ((uVar3 & 0xffff) == 0) {
 """
+
+
 class Unknown12Peripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
         if offset == 0x28:
@@ -168,7 +170,7 @@ class Unknown12Peripheral(LoggingPeripheral):
         return value
 
     def hw_write(self, offset, size, value):
-        
+
         return super().hw_write(offset, size, value)
 
     def __init__(self, name, address, size, **kwargs):

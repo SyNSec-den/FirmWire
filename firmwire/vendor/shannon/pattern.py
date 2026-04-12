@@ -8,11 +8,7 @@ import firmwire.vendor.shannon.pattern_handlers as handlers
 log = logging.getLogger(__name__)
 
 PATTERNS_COMMON = {
-    "BXLR": {
-        "pattern": "70 47",
-        "required": True,
-        "align": 2
-    },
+    "BXLR": {"pattern": "70 47", "required": True, "align": 2},
 }
 
 PATTERNS_CORTEX_R = {
@@ -44,10 +40,10 @@ PATTERNS_CORTEX_R = {
         "pattern": "70 b5 05 46 ???????? ?? 48 ?? 24",
     },
     "pal_MemAlloc": {
-        "pattern" : [
+        "pattern": [
             "2d e9 f0 4f  0d 00  83 b0  99 46  92 46  80 46",
-            "2d e9 ff 4f  4f f0  00 05  0e 00  83 b0  9a 46"
-            ],
+            "2d e9 ff 4f  4f f0  00 05  0e 00  83 b0  9a 46",
+        ],
         "post_lookup": handlers.fixup_bios_symbol,
     },
     "pal_MemFree": {
@@ -138,8 +134,7 @@ PATTERNS_CORTEX_R = {
     "DSP_SYNC_WORD_0": {
         "pattern": [
             "??21??68 4ff4??72 884202d1 ??689042 07d0 ??23??a0 cde90003 ??????a0 ?* ??b0bde8 f0 ??",
-            "??21??68 ??22     884202d1 ??689042 07d0 ??23??a0 cde90003 ??????a0 ?* ??b0bde8 f0 ??", # G930F
-
+            "??21??68 ??22     884202d1 ??689042 07d0 ??23??a0 cde90003 ??????a0 ?* ??b0bde8 f0 ??",  # G930F
         ],
         "post_lookup": handlers.get_dsp_sync0,
         "required": False,
@@ -147,7 +142,7 @@ PATTERNS_CORTEX_R = {
     "DSP_SYNC_WORD_1": {
         "pattern": [
             "4ff4??72 884202d1 ??689042 07d0 ??23??a0 cde90003 ??????a0 ?* ??b0bde8 f0 ??",
-            "??????22 884202d1 ??689042 07d0 ??23??a0 cde90003 ??????a0 ?* ??b0bde8 f0 ??", # G930F
+            "??????22 884202d1 ??689042 07d0 ??23??a0 cde90003 ??????a0 ?* ??b0bde8 f0 ??",  # G930F
         ],
         "offset": 2,
         "offset_end": 3,
@@ -159,14 +154,14 @@ PATTERNS_CORTEX_R = {
 PATTERNS_CORTEX_A = {
     "main_mmu_table": {
         "pattern": [
-            "01000000 00000000 00000000 0c940100 01000000 00001000", # S5123
-            "00000000 00000000 00001000 0c940100 00000040 00000040", # S5123AP
+            "01000000 00000000 00000000 0c940100 01000000 00001000",  # S5123
+            "00000000 00000000 00001000 0c940100 00000040 00000040",  # S5123AP
         ],
         "required": True,
     },
     "boot_key_check": {
         "pattern": [
-            "0880 ???????? e2a0 ???????? 06f0???? 05f0???? 3aac 8021 2046 ???????? 1aa9 2046 1022", # S5123AP
+            "0880 ???????? e2a0 ???????? 06f0???? 05f0???? 3aac 8021 2046 ???????? 1aa9 2046 1022",  # S5123AP
         ],
         "offset_end": 0x0,
         "soc_match": ["S5123AP"],
@@ -175,7 +170,7 @@ PATTERNS_CORTEX_A = {
     "set_task_affinity": {
         # Search for == Task(%d) ==
         "pattern": [
-            "2de9f047 86b0 ???????? 0446 9846 9146 0e46 0021 0122 0827 c4f2???? 04f10803 2546 daf80000 0590 3c20 07c3 c4e90517 e161 ???????? 2820 3c22 c4f2???? 0023 45f8041f", # S5123AP
+            "2de9f047 86b0 ???????? 0446 9846 9146 0e46 0021 0122 0827 c4f2???? 04f10803 2546 daf80000 0590 3c20 07c3 c4e90517 e161 ???????? 2820 3c22 c4f2???? 0023 45f8041f",  # S5123AP
             "2de9f043 85b0 0546 9846 9146 0e46 3c20 0021 0122 0827 05f10803 2c46 07c3 c5e90517 e961 ???????? 2820 3c22 c4f2???? 0023 44f8041f",  # oriole
         ],
         "required": True,
@@ -184,14 +179,14 @@ PATTERNS_CORTEX_A = {
         "pattern": [
             "83b0 2de9f0?? ??b0 0df14c0c 0024",  # oriole-sq3a.220705.004
             "83b0 2de9f0?? ??b0 4af29018 0df14c0c 0024",  # G981BXXSKHXEA
-            "83b0 2de9f04f ??b0 ???????? 0df14c0c 0024", # S5123AP
+            "83b0 2de9f04f ??b0 ???????? 0df14c0c 0024",  # S5123AP
         ],
         "required": True,
     },
     "OS_fatal_error": {
         "pattern": [
             "f0b5 81b0 0446 fff7ecea 0546 fff7eaea 49f28036 c4f23046 7179 8842",  # G981BXXSKHXEA
-            "f0b5 81b0 0446 00f0???? 0546 00f0???? ???????? c4f2???? 7179 8842", # S5123AP
+            "f0b5 81b0 0446 00f0???? 0546 00f0???? ???????? c4f2???? 7179 8842",  # S5123AP
             "f0b5 81b0 0446 fff7???? 0546 fff7???? ???????? c4f6???? 7179 8842",  # oriole
         ],
     },
@@ -215,13 +210,13 @@ PATTERNS_CORTEX_A = {
         "pattern": [
             "2de9f04f 85b0 9a46 9146 0c46 8046 29b1 14f00305 18bf c5f10405 11e0",  # oriole-sq3a.220705.004, oriole-ap2a.240905.003.f1
             "2de9f04f 85b0 0c46 9a46 9146 8046 2cb1 14f00305 18bf c5f10405 11e0",  # G981BXXSKHXEA
-            "2de9f04f 85b0 ???????? 8046 0c46 9a46 9146 c4f2???? 002c 2868 0490 05d0 14f00307 18bf c7f10407 11e0", # S5123AP
+            "2de9f04f 85b0 ???????? 8046 0c46 9a46 9146 c4f2???? 002c 2868 0490 05d0 14f00307 18bf c7f10407 11e0",  # S5123AP
         ],
     },
     "pal_MemFree": {
         "pattern": [
             "2de9f04f 87b0 1546 0491 0646 43f2d6c7 8346 3df246c6 43f2c059 c4f20d59 99f80510 8842",  # G981BXXSKHXEA
-            "2de9f04f 89b0 ???????? cde90421 0746 c4f2???? daf80000 0890 ???????? 0646 ???????? ???????? c4f2???? 9bf80510 8842", # S5123AP
+            "2de9f04f 89b0 ???????? cde90421 0746 c4f2???? daf80000 0890 ???????? 0646 ???????? ???????? c4f2???? 9bf80510 8842",  # S5123AP
             "2de9f04f 87b0 cde90312 8146 ???????? 8246 ???????? ???????? c4f6???? 6979 8842",  # oriole
         ],
     },
@@ -253,23 +248,23 @@ PATTERNS_CORTEX_A = {
         ],
     },
     "SYM_LTERRC_INT_MOB_CMD_HO_FROM_IRAT_MSG_ID": {
-        "lookup": lambda data, offset: 0xc3a5,
+        "lookup": lambda data, offset: 0xC3A5,
     },
-    "SYM_QUEUE_LIST": {"lookup": handlers.find_queue_table},             # G991B, oriole
-    "SYM_CUR_TASK_PTR": {"lookup": handlers.find_current_task_ptr_a},    # G991B, oriole
+    "SYM_QUEUE_LIST": {"lookup": handlers.find_queue_table},  # G991B, oriole
+    "SYM_CUR_TASK_PTR": {"lookup": handlers.find_current_task_ptr_a},  # G991B, oriole
     # Find function OS_Create_Event_Group which calls a function to inject the pointer of pal_event_group into a fixed pointer
     "SYM_EVENT_GROUP_LIST": {
         "lookup": handlers.find_sym_event_group_list,
         "soc_match": ["S5123"],
     },
-    "SYM_TASK_LIST": {                                                   # G991B, oriole
+    "SYM_TASK_LIST": {  # G991B, oriole
         "lookup": handlers.find_task_table,
         "post_lookup": handlers.fixup_set_task_layout,
     },
     "DSP_SYNC_WORD_0": {
         "pattern": [
             "80b5 82b0 0368 ???????? 4ff48f70 ???????? ???????? cde90010 ??a0 c121 ???????? 02b0 80bd",
-            "80b5 82b0 0368 ???????? 4ff49570 4ff4de72 c4f28801 cde90010 03a0 c121 ???????? 02b0 80bd", # S5123AP
+            "80b5 82b0 0368 ???????? 4ff49570 4ff4de72 c4f28801 cde90010 03a0 c121 ???????? 02b0 80bd",  # S5123AP
         ],
         "offset": 28,
         "post_lookup": handlers.s5123_get_dsp_sync0,
@@ -279,7 +274,7 @@ PATTERNS_CORTEX_A = {
     "DSP_SYNC_WORD_1": {
         "pattern": [
             "80b5 82b0 0368 ???????? 4ff48f70 ???????? ???????? cde90010 ??a0 c121 ???????? 02b0 80bd",
-            "80b5 82b0 0368 ???????? 4ff49570 4ff4de72 c4f28801 cde90010 03a0 c121 ???????? 02b0 80bd", # S5123AP
+            "80b5 82b0 0368 ???????? 4ff49570 4ff4de72 c4f28801 cde90010 03a0 c121 ???????? 02b0 80bd",  # S5123AP
         ],
         "offset": 14,
         "post_lookup": handlers.s5123_get_dsp_sync1,

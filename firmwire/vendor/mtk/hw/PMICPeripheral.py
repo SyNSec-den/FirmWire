@@ -4,6 +4,7 @@ import logging
 
 from . import PassthroughPeripheral
 
+
 # see the Linux kernel driver (mtk-pmic-wrap)
 # modern WACS (wrapper access?) regs in order:
 #  CMD: write commands to this (i.e. a register address)

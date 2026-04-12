@@ -22,7 +22,9 @@ class GIPCPeripheral(LoggingPeripheral):
         return value
 
     def hw_write(self, offset, size, value):
-        self.machine.physical_memory_write(0x14d60000, struct.pack("<I", 1))  # Door Bell 0
+        self.machine.physical_memory_write(
+            0x14D60000, struct.pack("<I", 1)
+        )  # Door Bell 0
         if offset == 0x800:
             self.ap2cp_cmd = value
             offset_name = "AP2CP_CMD"

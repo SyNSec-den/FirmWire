@@ -137,6 +137,7 @@ class ShannonLoader(firmwire.loader.Loader):
 
         if self.modem_soc.name in CORTEX_A_SOC:
             from firmwire.vendor.shannon.nr.mmu import MMUEntry, MMUEntry2
+
             modem_main = self.modem_file.get_section("MAIN")
             sym = self.symbol_table.lookup("main_mmu_table")
             if sym is None:
@@ -146,12 +147,16 @@ class ShannonLoader(firmwire.loader.Loader):
                 return False
 
             if self.modem_soc.name == "S5123":
-                mem_entries, unsafe_regions = shannon.nr.mmu.parse_mmu_table(modem_main, sym.address, MMUEntry)
+                mem_entries, unsafe_regions = shannon.nr.mmu.parse_mmu_table(
+                    modem_main, sym.address, MMUEntry
+                )
             else:
-                mem_entries, unsafe_regions = shannon.nr.mmu.parse_mmu_table(modem_main, sym.address, MMUEntry2)
+                mem_entries, unsafe_regions = shannon.nr.mmu.parse_mmu_table(
+                    modem_main, sym.address, MMUEntry2
+                )
             # To inject task
             mem_entries.append(
-                MMUEntry(1313, 0x70000000, 0x00100000, 0x11c0c),
+                MMUEntry(1313, 0x70000000, 0x00100000, 0x11C0C),
             )
             self.unsafe_regions.extend(unsafe_regions)
         else:
@@ -230,45 +235,73 @@ class ShannonLoader(firmwire.loader.Loader):
             if i in (0, 1):
                 freq = 1000
             self.create_timer(
-                self.modem_soc.TIMER_BASE + i * 0x100, 0x100,
-                "tim{}".format(i), self.modem_soc.iTINT0 + i, freq,
-                gic_model=self.modem_soc.GIC_MODEL)
+                self.modem_soc.TIMER_BASE + i * 0x100,
+                0x100,
+                "tim{}".format(i),
+                self.modem_soc.iTINT0 + i,
+                freq,
+                gic_model=self.modem_soc.GIC_MODEL,
+            )
 
         self.create_peripheral(
-            self.modem_soc.CLK_PERIPHERAL, self.modem_soc.SOC_CLK_BASE, 0xA000, name="SOC_CLK")
+            self.modem_soc.CLK_PERIPHERAL,
+            self.modem_soc.SOC_CLK_BASE,
+            0xA000,
+            name="SOC_CLK",
+        )
         self.create_peripheral(
-            self.modem_soc.SOC_PERIPHERAL, self.modem_soc.SOC_BASE, 0x2000, name="SOC")
+            self.modem_soc.SOC_PERIPHERAL, self.modem_soc.SOC_BASE, 0x2000, name="SOC"
+        )
         self.create_peripheral(UARTPeripheral, 0x84000000, 0x1000, name="boot_uart")
         self.create_peripheral(
-            self.modem_soc.SHM_PERIPHERAL, self.modem_soc.SHM_BASE, 0x500000, name="SHM")
+            self.modem_soc.SHM_PERIPHERAL, self.modem_soc.SHM_BASE, 0x500000, name="SHM"
+        )
         self.create_peripheral(
-            self.modem_soc.IPC_PERIPHERAL, self.modem_soc.SIPC_BASE, 0x1000, name="SIPC")
+            self.modem_soc.IPC_PERIPHERAL, self.modem_soc.SIPC_BASE, 0x1000, name="SIPC"
+        )
 
         if self.modem_soc.name in CORTEX_R_SOC:
             self.create_peripheral(ShannonTCU, 0x8200F000, 0x100, name="TCU")
 
-            self.create_peripheral(LoggingPeripheral, 0x8F900000, 0x1000, name="unk_per10")
+            self.create_peripheral(
+                LoggingPeripheral, 0x8F900000, 0x1000, name="unk_per10"
+            )
             self.create_peripheral(LoggingPeripheral, 0x8FC30000, 0x1000, name="usi1")
             self.create_peripheral(LoggingPeripheral, 0x8FC22000, 0x1000, name="usi2")
             self.create_peripheral(LoggingPeripheral, 0x8FC60000, 0x1000, name="usi3")
             self.create_peripheral(LoggingPeripheral, 0x8FD20000, 0x1000, name="usi4")
 
-            self.create_peripheral(MarconiPeripheral, 0xC1800000, 0x5000, name="marconi")
-            self.create_peripheral(CyclicBitPeripheral, 0xC2000000, 0x1000, name="marconi2")
-        elif self.modem_soc.name in ("S5123", ):
-            self.create_mc_timer(0x840f0000, 0x1000)
+            self.create_peripheral(
+                MarconiPeripheral, 0xC1800000, 0x5000, name="marconi"
+            )
+            self.create_peripheral(
+                CyclicBitPeripheral, 0xC2000000, 0x1000, name="marconi2"
+            )
+        elif self.modem_soc.name in ("S5123",):
+            self.create_mc_timer(0x840F0000, 0x1000)
             self.create_peripheral(UARTPeripheral, 0x84010000, 0x1000, name="uart2")
-            self.create_peripheral(Unknown2Peripheral, 0x81020000, 0x1000, name="unk_per8")
-            self.create_peripheral(CyclicBitPeripheral, 0x14500000, 0x5000, name="marconi")
-            self.create_peripheral(CyclicBitPeripheral, 0x14420000, 0x1000, name="marconi2")
-        elif self.modem_soc.name in ("S5123AP", ):
-            self.create_mc_timer(0x840f0000, 0x1000)
-            self.create_peripheral(UARTPeripheral, 0x84010000, 0x1000, name='uart2')
+            self.create_peripheral(
+                Unknown2Peripheral, 0x81020000, 0x1000, name="unk_per8"
+            )
+            self.create_peripheral(
+                CyclicBitPeripheral, 0x14500000, 0x5000, name="marconi"
+            )
+            self.create_peripheral(
+                CyclicBitPeripheral, 0x14420000, 0x1000, name="marconi2"
+            )
+        elif self.modem_soc.name in ("S5123AP",):
+            self.create_mc_timer(0x840F0000, 0x1000)
+            self.create_peripheral(UARTPeripheral, 0x84010000, 0x1000, name="uart2")
             self.create_peripheral(SysCfgPeripheral, 0x82000000, 0x1000, name="SYSCFG")
-            self.create_peripheral(CyclicBitPeripheral, 0x8a100000, 0x5000, name="marconi")
-            self.create_peripheral(CyclicBitPeripheral, 0x8a020000, 0x1000, name="marconi2")
-            self.create_peripheral(Unknown12Peripheral, 0x8f910000, 0x1000, name="unk_per12")
-            
+            self.create_peripheral(
+                CyclicBitPeripheral, 0x8A100000, 0x5000, name="marconi"
+            )
+            self.create_peripheral(
+                CyclicBitPeripheral, 0x8A020000, 0x1000, name="marconi2"
+            )
+            self.create_peripheral(
+                Unknown12Peripheral, 0x8F910000, 0x1000, name="unk_per12"
+            )
 
         if self.modem_file.has_section("NV"):
             nv = self.modem_file.get_section("NV")
@@ -341,7 +374,7 @@ class ShannonLoader(firmwire.loader.Loader):
             )
         elif self.modem_soc.name == "S5123":
             self.add_memory_range(
-                0x800f0000,
+                0x800F0000,
                 0x8000,
                 name="gic",
                 qemu_name="a15mpcore_priv",  # hopefully close enough
@@ -391,7 +424,7 @@ class ShannonLoader(firmwire.loader.Loader):
         props = [
             {"type": "uint32", "name": "irq_num", "value": irq_num},
             {"type": "uint32", "name": "freq", "value": freq},
-            {"type": "uint32",  "name": "gic_model", "value": gic_model},
+            {"type": "uint32", "name": "gic_model", "value": gic_model},
         ]
         mr = self.add_memory_range(
             start,
@@ -534,7 +567,7 @@ class ShannonLoader(firmwire.loader.Loader):
         )
 
         # Special handling for Moto One images; these don't use a classic date, but ID numbers
-        if soc_guess == "S337AP" and b'MOTOONE' in found.group():
+        if soc_guess == "S337AP" and b"MOTOONE" in found.group():
             soc_date = int(found.group().split(b"SGCS_QB")[-1])
 
         self.modem_soc = get_soc(self.NAME, soc_guess)

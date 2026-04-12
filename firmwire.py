@@ -74,7 +74,9 @@ def get_args():
     )
 
     parser.add_argument(
-        "--gsmtap", type=str, help="Stream packets from inside the baseband to this IP on port 4729 (gsmtap)"
+        "--gsmtap",
+        type=str,
+        help="Stream packets from inside the baseband to this IP on port 4729 (gsmtap)",
     )
 
     fuzzopts = parser.add_argument_group("fuzzing options")
@@ -82,7 +84,7 @@ def get_args():
     fuzzopts.add_argument(
         "--fuzz",
         **MachineInitParams.param_arg_spec("--fuzz"),
-        help="Inject and invoke the passed AFL fuzz task module (headless)."
+        help="Inject and invoke the passed AFL fuzz task module (headless).",
     )
     fuzzopts.add_argument(
         "--fuzz-triage",
@@ -302,8 +304,8 @@ def main() -> int:
         # to use GLINK to dynamically register a task. GLINK would need have been loaded from the start in that case
         injection_modules = [args.fuzz, args.fuzz_triage]
         if type(args.injected_task) != type(None):
-            if ',' in args.injected_task:
-                args.injected_task = args.injected_task.split(',')
+            if "," in args.injected_task:
+                args.injected_task = args.injected_task.split(",")
                 injection_modules.extend(list(args.injected_task))
             else:
                 injection_modules.append(args.injected_task)
@@ -318,7 +320,8 @@ def main() -> int:
     log.info("Starting emulator %s", machine.instance_name)
     machine.start(start_suspended=args.stop, console=args.console)
 
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -518,15 +518,20 @@ def protect_write_access(self, cpustate, memory_access_desc, label=None, const_v
     addr = memory_access_desc.addr
     acc_size = memory_access_desc.size
     format = NUM2FMT[acc_size]
-    (value,) = struct.unpack(format, panda.virtual_memory_read(cpustate, addr, acc_size))
+    (value,) = struct.unpack(
+        format, panda.virtual_memory_read(cpustate, addr, acc_size)
+    )
     value = const_value
     panda.physical_memory_write(addr, struct.pack("<I", value))
     offset = addr - memory_access_desc.hook.start_address
     log_emit(
-        self, cpustate,
-        f"Protected write access: PC({cpustate.panda_guest_pc:#010x}) Addr({addr:#010x})" +
-        (f" ({label}+{offset:#x})" if label else "") + f" Value({value:#x})"
+        self,
+        cpustate,
+        f"Protected write access: PC({cpustate.panda_guest_pc:#010x}) Addr({addr:#010x})"
+        + (f" ({label}+{offset:#x})" if label else "")
+        + f" Value({value:#x})",
     )
+
 
 ###############################
 

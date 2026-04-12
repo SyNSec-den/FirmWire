@@ -9,6 +9,7 @@ from firmwire.emulator.firmwire import FirmWireEmu
 # create_gsmtap_header from https://github.com/fgsect/scat/blob/master/src/scat/util.py
 # Struct definitions can be found in libosmocore's include/osmocom/core/gsmtap.h
 
+
 @unique
 class gsmtap_type(IntEnum):
     UM = 0x01
@@ -156,7 +157,7 @@ def create_gsmtap_header(
     """
     Create a GSMTAP header for the given parameters. To be used with send_gsmtap_packet.
     The two relevant options are payload_type and sub_type, all other parameters can usually be left at their default values.
-    
+
     Args:
         version (int): GSMTAP version, either 2 or 3. Default is 2.
         payload_type (gsmtap_type): The payload type, see gsmtap_type enum. Default is 0.

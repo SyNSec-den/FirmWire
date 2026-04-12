@@ -5,10 +5,10 @@ from . import PassthroughPeripheral
 
 class DSPPeripheralCortexA(PassthroughPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0xa00:
+        if offset == 0xA00:
             value = self.dsp_sync0
             offset_name = "DSP_SYNC0"
-        elif offset == 0xa04:
+        elif offset == 0xA04:
             value = self.dsp_sync1
             offset_name = "DSP_SYNC1"
         else:

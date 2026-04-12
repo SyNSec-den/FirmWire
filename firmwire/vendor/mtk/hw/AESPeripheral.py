@@ -4,6 +4,7 @@ import logging
 
 from . import PassthroughPeripheral
 
+
 # this is SEJ aka 'hacc' in the public linux kernel source
 class AES_TOP0_Periph(PassthroughPeripheral):
     def __init__(self, name, address, size, **kwargs):

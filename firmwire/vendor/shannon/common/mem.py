@@ -10,7 +10,7 @@ class MemEntry(object):
         self.executable = True
         self.writable = True
         self.readable = True
-    
+
     def get_start(self):
         return self.start
 

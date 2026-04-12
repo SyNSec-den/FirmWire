@@ -815,26 +815,33 @@ r12: %08x     cpsr: %08x""" % (
         if self.modem_soc.name in ("S5000AP", "S5123AP", "S5133AP"):
             if self.modem_soc.name == "S5123AP":
                 self.set_breakpoint(
-                    self.symbol_table.lookup("set_task_affinity").address, set_affinity)
+                    self.symbol_table.lookup("set_task_affinity").address, set_affinity
+                )
 
-                main_task_counter = self.symbol_table.lookup("main_task_counter").address
-                
-                from firmwire.vendor.shannon.hooks import warm_boot_change, protect_write_access
+                main_task_counter = self.symbol_table.lookup(
+                    "main_task_counter"
+                ).address
+
+                from firmwire.vendor.shannon.hooks import (
+                    warm_boot_change,
+                    protect_write_access,
+                )
+
                 new_mem_mappings = [
                     {
                         "start": 0x40008000 | 0x70000000 >> 0x12,
-                        "end":   (0x40008000 | 0x70000000 >> 0x12) + 4,
+                        "end": (0x40008000 | 0x70000000 >> 0x12) + 4,
                         "handler": protect_write_access,
                         "write": True,
                         "kwargs": {
                             "label": "RWX_Region",
-                            "const_value": 0x70000000 | 0x11c0e,
+                            "const_value": 0x70000000 | 0x11C0E,
                             "on_after": True,
                         },
                     },
                     {
                         "start": main_task_counter,
-                        "end":   main_task_counter + 4,
+                        "end": main_task_counter + 4,
                         "handler": protect_write_access,
                         "write": True,
                         "kwargs": {
@@ -855,7 +862,11 @@ r12: %08x     cpsr: %08x""" % (
             )
 
         elif self.modem_soc.name == "S5123":
-            from firmwire.vendor.shannon.hooks import warm_boot_change, protect_write_access
+            from firmwire.vendor.shannon.hooks import (
+                warm_boot_change,
+                protect_write_access,
+            )
+
             new_mappings = [
                 {
                     "name": "warm_boot_change",
@@ -871,19 +882,19 @@ r12: %08x     cpsr: %08x""" % (
             new_mem_mappings = [
                 {
                     "start": 0x40008000 | 0x70000000 >> 0x12,
-                    "end":   (0x40008000 | 0x70000000 >> 0x12) + 4,
+                    "end": (0x40008000 | 0x70000000 >> 0x12) + 4,
                     "handler": protect_write_access,
                     "write": True,
                     "kwargs": {
                         "label": "RWX_Region",
-                        "const_value": 0x70000000 | 0x11c0e,
+                        "const_value": 0x70000000 | 0x11C0E,
                         "on_after": True,
                     },
                 },
                 {
                     # oriole-ap2a.240905.003.f1:no rf_hwid found in mapping table
                     "start": rf_hwid,
-                    "end":   rf_hwid + 4,
+                    "end": rf_hwid + 4,
                     "handler": protect_write_access,
                     "write": True,
                     "kwargs": {
@@ -895,19 +906,19 @@ r12: %08x     cpsr: %08x""" % (
                 {
                     # oriole-ap2a.240905.003.f1: There is no board_rf_config
                     "start": board_rf_config,
-                    "end":   board_rf_config + 4,
+                    "end": board_rf_config + 4,
                     "handler": protect_write_access,
                     "write": True,
                     "kwargs": {
                         "label": "board_rf_config",
-                        "const_value": 0x12d,
+                        "const_value": 0x12D,
                         "on_after": True,
                     },
                 },
                 {
                     # oriole-ap2a.240905.003.f1: [SECURITY] TRNG INIT FAIL !
                     "start": trng_init,
-                    "end":   trng_init + 1,
+                    "end": trng_init + 1,
                     "handler": protect_write_access,
                     "write": True,
                     "kwargs": {
@@ -919,7 +930,7 @@ r12: %08x     cpsr: %08x""" % (
                 {
                     # oriole-ap2a.240905.003.f1: PALTskSs
                     "start": main_task_counter,
-                    "end":   main_task_counter + 4,
+                    "end": main_task_counter + 4,
                     "handler": protect_write_access,
                     "write": True,
                     "kwargs": {
@@ -931,7 +942,8 @@ r12: %08x     cpsr: %08x""" % (
             self.install_mem_hooks(new_mem_mappings)
             disable_list += ["PCIE"]
             self.set_breakpoint(
-                self.symbol_table.lookup("set_task_affinity").address, set_affinity)
+                self.symbol_table.lookup("set_task_affinity").address, set_affinity
+            )
         # HACK for CP_G950FXXU1AQI7 and G960
         elif self.modem_soc.name in ["S355AP", "S360AP"]:
 
@@ -978,11 +990,14 @@ r12: %08x     cpsr: %08x""" % (
             # The clear is really slow because SHM is via remote memory
             if self.symbol_table.lookup("QUIRK_S337AP_SHM_HACK"):
                 addr = self.symbol_table.lookup("QUIRK_S337AP_SHM_HACK").address
-                self.qemu.wm(addr, 4, 0) # 4 zero bytes is effectively a nop (andeq r0, r0, r0)
+                self.qemu.wm(
+                    addr, 4, 0
+                )  # 4 zero bytes is effectively a nop (andeq r0, r0, r0)
 
             if self.symbol_table.lookup("quirk_boot_key_check_a51"):
                 self.set_breakpoint(
-                    self.symbol_table.lookup("quirk_boot_key_check_a51").address, set_key
+                    self.symbol_table.lookup("quirk_boot_key_check_a51").address,
+                    set_key,
                 )
                 # A51 images have issues with the packethandlers due to missing SBD, as above
                 disable_list += ["InitPacketHandler"]

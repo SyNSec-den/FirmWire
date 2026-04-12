@@ -327,7 +327,7 @@ class CDecl:
 
     def __repr__(self):
         fields = []
-        for (name, spec) in self.fields:
+        for name, spec in self.fields:
             value = self.__dict__[name]
             if self._field_map[name]["type"] == int:
                 fields.append("%s=0x%x (%s)" % (name, value, spec))
@@ -375,7 +375,7 @@ class CDecl:
             filter(lambda x: "_" not in x[0], self.__class__.__dict__.items())
         )
 
-        for (name, spec) in fields:
+        for name, spec in fields:
             default = b"\x00" * struct.calcsize(spec)
             items = struct.unpack(spec, default)
 
@@ -395,7 +395,7 @@ class CDecl:
     def to_bytes(self):
         buf = b""
 
-        for (name, spec) in self.fields:
+        for name, spec in self.fields:
             buf += self.pack_field(name)
 
         return buf
@@ -403,7 +403,7 @@ class CDecl:
     def from_bytes(self, data):
         offset = 0
 
-        for (name, spec) in self.fields:
+        for name, spec in self.fields:
             values = struct.unpack_from(spec, data, offset=offset)
 
             if self._field_map[name]["type"] == bytes:
@@ -595,7 +595,9 @@ class MTKFSD:
                 op | FS_API_RESP_ID,
             )
 
-            packet = ccci_header + resp_buf[bytes_written:(bytes_written+fragment_size)]
+            packet = (
+                ccci_header + resp_buf[bytes_written : (bytes_written + fragment_size)]
+            )
             out_packets.append(packet)
             bytes_written += fragment_size
 
@@ -1201,7 +1203,7 @@ class MTKFSD:
 
         # XXX: no idea what is happening here. Packet reference shows that mtime is used twice...
         # for (a, t) in [("CreateDateTime", atime), ("DateTime", mtime)]:
-        for (a, t) in [("CreateDateTime", mtime), ("DateTime", mtime)]:
+        for a, t in [("CreateDateTime", mtime), ("DateTime", mtime)]:
             v = (
                 (t.tm_sec & 0x1F)
                 | ((t.tm_min & 0x3F) << 5)

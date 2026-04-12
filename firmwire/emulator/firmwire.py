@@ -260,23 +260,36 @@ class FirmWireEmu(ABC):
             if "kwargs" not in hook:
                 hook["kwargs"] = {}
 
-            self.add_panda_mem_hook(hook["start"], hook["end"], hook["handler"], w=hook["write"], **hook["kwargs"])
+            self.add_panda_mem_hook(
+                hook["start"],
+                hook["end"],
+                hook["handler"],
+                w=hook["write"],
+                **hook["kwargs"],
+            )
 
-    def add_panda_mem_hook(self, start, end, hook, w=False, on_before=False, on_after=True, **kwargs):
+    def add_panda_mem_hook(
+        self, start, end, hook, w=False, on_before=False, on_after=True, **kwargs
+    ):
         """Create a PANDA mem hook with FirmWireMachine context"""
         assert isinstance(start, int)
         assert isinstance(end, int)
         assert callable(hook)
 
         if w:
-            dec = self.qemu.pypanda.hook_phys_mem_write(start, end, on_before=on_before, on_after=on_after)
+            dec = self.qemu.pypanda.hook_phys_mem_write(
+                start, end, on_before=on_before, on_after=on_after
+            )
         else:
-            dec = self.qemu.pypanda.hook_phys_mem_read(start, end, on_before=on_before, on_after=on_after)
+            dec = self.qemu.pypanda.hook_phys_mem_read(
+                start, end, on_before=on_before, on_after=on_after
+            )
 
         def hook_wrapper(fun):
             def inner(*args, **kw):
                 fun(self, *args, **kw, **kwargs)
                 return None
+
             return inner
 
         dec(hook_wrapper(hook))

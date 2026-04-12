@@ -5,7 +5,7 @@ from . import LoggingPeripheral
 
 class S5123APClkPeripheral(LoggingPeripheral):
     def hw_read(self, offset, size):
-        if offset == 0x10c:
+        if offset == 0x10C:
             value = self.boot_clk[0]
             offset_name = f"BOOT_CLK_0"
             self.log_read(value, size, offset_name)
@@ -13,7 +13,7 @@ class S5123APClkPeripheral(LoggingPeripheral):
             value = 0x20000000
             offset_name = f"UNK_{offset:x}"
             self.log_read(value, size, offset_name)
-        elif offset == 0x14c:
+        elif offset == 0x14C:
             value = self.boot_clk[1]
             offset_name = "BOOT_CLK_2"
             self.log_read(value, size, offset_name)
@@ -22,7 +22,7 @@ class S5123APClkPeripheral(LoggingPeripheral):
             offset_name = "UNK"
             self.log_read(value, size, offset_name)
         elif offset == 0x2140:
-            value = 0xe0000
+            value = 0xE0000
             offset_name = "CLK_D"
             self.log_read(value, size, offset_name)
         else:

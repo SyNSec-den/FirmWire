@@ -11,7 +11,7 @@ class ShannonSOCPeripheralCortexA(LoggingPeripheral):
         elif offset == 0x4:
             value = self.warm_boot[1]
             offset_name = "WARM_BOOT_1"
-        elif offset == 0x5c:
+        elif offset == 0x5C:
             value = 3
             offset_name = f"{offset:x}"
         elif offset == 0x70:
@@ -19,18 +19,18 @@ class ShannonSOCPeripheralCortexA(LoggingPeripheral):
             value |= 2
             offset_name = f"{offset:x}"
         elif offset == 0x110:
-            value = 0x67fff | 0x18000 | 0x80000
+            value = 0x67FFF | 0x18000 | 0x80000
             offset_name = f"{offset:x}"
         elif offset == 0x150:
-            value = 0x4000 | 0x6f | 0x3f90
+            value = 0x4000 | 0x6F | 0x3F90
             offset_name = f"{offset:x}"
-        elif offset == 0xa24:
+        elif offset == 0xA24:
             value = 1
             offset_name = f"{offset:x}"
-        elif offset == 0xa3c:
+        elif offset == 0xA3C:
             value = 1
             offset_name = f"{offset:x}"
-        elif offset == 0xa50:
+        elif offset == 0xA50:
             value = 1
             offset_name = f"{offset:x}"
         else:

@@ -4,6 +4,7 @@ import struct
 import re
 from binascii import hexlify
 
+
 #
 # BinaryPattern by Grant Hernandez
 #

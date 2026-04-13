@@ -12,6 +12,7 @@ import firmwire.vendor.shannon.hooks
 import firmwire.util.logging
 import avatar2
 import capstone
+from typing import Optional
 from firmwire.vendor.shannon.osi import ShannonOSI
 
 from avatar2 import *
@@ -45,6 +46,13 @@ class ShannonMachine(FirmWireEmu, ShannonOSI):
         self.ports = {}
         self._fuzzing = False
         self.packet_log = None
+
+    def get_main_section(self) -> Optional[avatar2.MemoryRange]:
+        for section in self.avatar.memory_ranges:
+            if section.data.name == "TOC_MAIN":
+                return section.data
+
+        return None
 
     def pal_msg_logging_enable(self, log_file):
         if log_file == "-":
@@ -551,6 +559,16 @@ r12: %08x     cpsr: %08x""" % (
         if not res:
             log.error("Failed to inject task into OS")
             return False
+
+        return True
+
+    def enable_tasks_exclusive(self, tasks):
+        log.info("Enabling only tasks: %s", tasks)
+        enabled_tasks = set(tasks or [])
+
+        for idx, task in enumerate(self.get_task_list()):
+            if task.name not in enabled_tasks:
+                self.disable_task_by_id(idx)
 
         return True
 

@@ -5,9 +5,12 @@ import sys
 import os
 import time
 import tempfile
+import threading
 
 from abc import ABC, abstractmethod
+from functools import partial
 from types import MethodType  # Panda unassigned access
+from typing import List, Optional, Union
 
 from ..modkit import ModKit
 from .guestlogs import FirmWireGuestLogger
@@ -15,6 +18,7 @@ from .snapshot import QemuSnapshotManager
 from ..hw.soc import SOCPeripheral
 
 from firmwire.util.misc import copy_function
+from firmwire.util.panda import read_cstring_panda
 
 from firmwire.memory_map import MemoryMapEntryType
 from avatar2 import Avatar, TargetStates
@@ -61,17 +65,37 @@ class FirmWireEmu(ABC):
         bid = self.qemu.set_breakpoint(address, temporary=temporary)
         assert bid not in self._bp_map
 
-        # Avoid recursive hoisting - when restoring, we call set_breakpoint
-        if not handler.__name__.startswith("FirmWireEmu."):
-            basename = "_bp_firmwire_%s_%s" % (handler.__name__, address)
+        # Avoid recursive hoisting - when restoring, we call set_breakpoint.
+        # `run_until` passes a functools.partial, so normalize to the wrapped function
+        # for naming/hoisting and reconstruct the partial afterwards.
+        source_handler = handler.func if isinstance(handler, partial) else handler
+        handler_name = getattr(
+            source_handler, "__name__", source_handler.__class__.__name__
+        )
+
+        if not handler_name.startswith("FirmWireEmu."):
+            basename = "_bp_firmwire_%s_%s" % (handler_name, address)
             new_name = "FirmWireEmu." + basename
 
             # In order to properly snapshot, we need to maintain breakpoint state.
             # This means the handler functions too.
             # These might be local functions though, so we need to hoist them to the global namespace
             # Lambda functions are NOT supported
-            handler = copy_function(handler, __name__, new_name)
-            setattr(FirmWireEmu, basename, handler)
+            if not hasattr(source_handler, "__code__"):
+                raise TypeError(
+                    "Breakpoint handler %r cannot be hoisted (expected a function)"
+                    % (source_handler,)
+                )
+
+            source_handler = copy_function(source_handler, __name__, new_name)
+            setattr(FirmWireEmu, basename, source_handler)
+
+            if isinstance(handler, partial):
+                handler = partial(
+                    source_handler, *handler.args, **(handler.keywords or {})
+                )
+            else:
+                handler = source_handler
 
         self._bp_map[bid] = {
             "address": address,
@@ -210,6 +234,61 @@ class FirmWireEmu(ABC):
         print("==> SHUTDOWN")
         avatar.shutdown()
 
+    def run_until(
+        self,
+        address: Union[int, List[int]],
+        arguments: Optional[List[tuple]] = None,
+        temporary=False,
+    ):
+
+        def bp_handler(_event, _arguments, _emu):
+            if _arguments is None:
+                _event.set()
+                return True
+
+            argv = _emu.get_args()
+            for i, arg in enumerate(_arguments):
+                # We do not care about this argument
+                if arg is None:
+                    continue
+                arg_type, arg_value = arg
+                real_arg_value = argv[i]
+                if arg_type is str:
+                    real_arg_value = read_cstring_panda(_emu.panda, argv[i])
+                if real_arg_value == arg_value:
+                    _event.set()
+                    return True
+
+            _emu.qemu.cont()
+            return True
+
+        bid = None
+        event = threading.Event()
+        if isinstance(address, int):
+            bid = self.set_breakpoint(
+                address,
+                partial(bp_handler, event, arguments),
+                temporary=temporary,
+                continue_after=False,
+            )
+        elif isinstance(address, list):
+            assert (
+                arguments is None
+            ), "`arguments` are not supported with multiple execution targets"
+            for addr in address:
+                self.set_breakpoint(
+                    addr,
+                    partial(bp_handler, event, None),
+                    temporary=temporary,
+                    continue_after=False,
+                )
+        self.qemu.cont()
+        event.wait()
+        # More wait
+        while self.qemu.state != TargetStates.STOPPED:
+            time.sleep(0.5)
+        return bid
+
     def install_hooks(self, mappings):
         """Installs and enables user provided hooks. Hooks are fast and should be preferred to breakpoints"""
         # Enable hooks using either GDB or panda
@@ -234,7 +313,7 @@ class FirmWireEmu(ABC):
                 else:
                     self.add_panda_hook(addr, hook["handler"])
 
-    def add_panda_hook(self, address, hook):
+    def add_panda_hook(self, address, hook, **kwargs):
         """Create a PANDA hook with FirmWireMachine context"""
         assert isinstance(address, int)
         assert callable(hook)
@@ -243,7 +322,7 @@ class FirmWireEmu(ABC):
         def hook_wrapper(fun):
             def inner(*args, **kw):
 
-                fun(self, *args, **kw)
+                fun(self, *args, **kw, **kwargs)
                 # PANDA hooks need to return a boolean to determine if another hook should be run
                 return None
 

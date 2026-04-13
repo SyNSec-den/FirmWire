@@ -2,6 +2,9 @@
 ## SPDX-License-Identifier: BSD-3-Clause
 import struct
 
+from typing import Optional
+
+from .pal import PALQueue
 from .queue import QUEUE_STRUCT_SIZE, QUEUE_NAME_PTR_OFFSET
 from .task import Task
 from firmwire.util.panda import read_cstring_panda
@@ -26,6 +29,14 @@ class ShannonOSI:
 
         task_struct.name = read_cstring_panda(self.panda, task_struct.name_ptr)
         return task_struct
+
+    def get_task_by_name(self, name):
+        tasks = self.get_tasks()
+        for t in tasks:
+            if t.name == name:
+                return t
+
+        return None
 
     def get_current_task_id(self):
         sym = self.symbol_table.lookup("SYM_CUR_TASK_ID", single=True)
@@ -112,17 +123,62 @@ class ShannonOSI:
 
         return Task(offset, self.task_layout, raw_bytes=task_struct_data)
 
-    def get_queues(self):
-        return self._get_object_array(
-            "SYM_QUEUE_LIST",
-            self.pal_queueid2name,
-            lambda name: name.startswith("ERR_"),
-        )
-
     def get_tasks(self):
         return self._get_object_array(
             "SYM_TASK_LIST", self.get_task_name_by_id, lambda name: name is None
         )
+
+    def get_queues(self):
+        return self._get_object_array(
+            "SYM_QUEUE_LIST",
+            self.get_queue_by_id,
+            lambda queue: queue.name.startswith("ERR_"),
+        )
+
+    def get_queue_by_name(self, name: str) -> Optional[PALQueue]:
+        queues = self.get_queues()
+        for q in queues:
+            if q.name == name:
+                return q
+
+        return None
+
+    def get_queue_by_id(self, qid) -> PALQueue:
+        if qid == 0xFFFF:
+            return PALQueue(name="NULL_QUEUE")
+
+        sym = self.symbol_table.lookup("SYM_QUEUE_LIST", single=True)
+
+        if sym is None:
+            return PALQueue(name="ERR_MISSING_SYM")
+
+        queue_struct = self.panda.physical_memory_read(
+            sym.address + qid * PALQueue.QUEUE_STRUCT_SIZE, PALQueue.QUEUE_STRUCT_SIZE
+        )
+        (qname_ptr, t, queue_alias_or_callback) = struct.unpack(
+            "<IBI",
+            queue_struct[
+                PALQueue.QUEUE_NAME_PTR_OFFSET : PALQueue.QUEUE_NAME_PTR_OFFSET + 4
+            ]
+            + queue_struct[
+                PALQueue.QUEUE_QTYPE_OFFSET : PALQueue.QUEUE_QTYPE_OFFSET + 1
+            ]
+            + queue_struct[
+                PALQueue.QUEUE_ALIAS_OR_CALLBACK_OFFSET : PALQueue.QUEUE_ALIAS_OR_CALLBACK_OFFSET
+                + 4
+            ],
+        )
+
+        if qname_ptr == 0:
+            return PALQueue(name="ERR_OUT_OF_BOUNDS")
+        qname = read_cstring_panda(self.panda, qname_ptr)
+
+        if t not in PALQueue.QTYPE_NAMES.keys():
+            qtype_name = "UNKNOWN"
+        else:
+            qtype_name = PALQueue.QTYPE_NAMES[t]
+
+        return PALQueue(qid, qname, t, qtype_name, queue_alias_or_callback)
 
     def _get_object_array(self, symbol, fn, stop_fn):
         sym = self.symbol_table.lookup(symbol, single=True)

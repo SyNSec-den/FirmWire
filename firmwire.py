@@ -15,6 +15,7 @@ from _version import __version__
 
 log = logging.getLogger("firmwire")
 
+
 def get_args():
     print(r"              ___            __      _                          ")
     print(r"-.     .-.   | __|(+) _ _ _ _\ \    / /(+) _ _ ___    .-.     .-")
@@ -62,6 +63,12 @@ def get_args():
         **MachineInitParams.param_arg_spec("injected-task"),
         dest="injected_task",
         help="Module to inject into baseband memory",
+    )
+    parser.add_argument(
+        "--exclusive",
+        type=str,
+        metavar="TASK[,TASK...]",
+        help="Enable only the listed Shannon task names and disable all others.",
     )
 
     parser.add_argument(
@@ -314,6 +321,16 @@ def main() -> int:
                 continue
             if not machine.load_and_inject_task(module_name):
                 print("loaded task: " + module_name)
+
+        if args.exclusive is not None:
+            exclusive_tasks = [
+                x.strip() for x in args.exclusive.split(",") if x.strip()
+            ]
+            if len(exclusive_tasks) == 0:
+                log.error("--exclusive requires at least one non-empty task name")
+                return 1
+
+            machine.enable_tasks_exclusive(exclusive_tasks)
 
         machine.print_task_list()
 

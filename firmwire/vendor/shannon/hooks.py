@@ -8,6 +8,7 @@ import binascii
 import collections
 
 from avatar2 import *
+from string import printable
 from .queue import QUEUE_STRUCT_SIZE, QUEUE_NAME_PTR_OFFSET
 
 from firmwire.util.panda import read_cstring_panda
@@ -280,6 +281,7 @@ def _log_printf_common(self, cpustate, tb, dump):
 
     fmt = _read_trace_cstring(self, cpustate, trace_entry[4])
     filename = _read_trace_cstring(self, cpustate, trace_entry[6])
+    filename = filename.split("/")[-1]
 
     argv = _vsprintf_get_va_list(cpustate)
     formatted = vsprintf(self, cpustate, fmt, argv, dump=dump)
@@ -531,6 +533,84 @@ def protect_write_access(self, cpustate, memory_access_desc, label=None, const_v
         + (f" ({label}+{offset:#x})" if label else "")
         + f" Value({value:#x})",
     )
+
+
+def func_called(self, cpustate, tb, hook, func_name="", num_args=0, args=None, **kwargs):
+    if args:
+        assert len(args) == num_args
+    r0 = cpustate.env_ptr.regs[0]
+    argv = []
+    argv = _vsprintf_get_va_list(cpustate)
+    args_str = []
+    argv = [r0, *argv]
+    if args:
+        for j, arg in enumerate(argv[:num_args]):
+            if args[j]['type'] is str:
+                arg = read_cstring_panda(panda, arg)
+                args_str.append(f"{args[j]['name']}={arg}")
+            else:
+                args_str.append(f"{args[j]['name']}={arg:#010x}")
+    else:
+        for arg in argv[:num_args]:
+            args_str.append(f"{arg:#010x}")
+
+    log_emit(self, cpustate, f"{func_name}({', '.join(args_str)})")
+
+
+def memory_hexdump(cpustate, addr, label='', n=1, first_line=True, int_values=False):
+    _range = range(0)
+    if isinstance(n, int):
+        _range = range(n)
+    elif isinstance(n, tuple):
+        _range = n
+    if first_line:
+        mem_str = f"{addr:#010x}:" + (f" ({label})" if label else "") + "\n"
+    else:
+        mem_str = "\n"
+    for i in _range:
+        value = panda.virtual_memory_read(cpustate, addr + i * 0x10, 0x10)
+        # value_int_str = f"{unpack('<I', value)[0]:#010x}"
+        value_str = ''.join(f'{chr(x)}' if chr(x) in printable[:-5] else '.' for x in value)
+        if int_values:
+            ints = []
+            for j in range(4):
+                ints.append(f"{struct.unpack('<I', value[j * 4:j * 4 + 4])[0]:#010x}")
+            value = ' '.join(ints)
+        else:
+            value_hex = ' '.join(f'{x:02x}' for x in value[:8])
+            value_hex += ' ' + ' '.join(f'{x:02x}' for x in value[8:])
+            value = value_hex
+
+        mem_str += f"\t{i * 0x10:#010x}: {value} |{value_str}|\n"
+
+    return mem_str
+
+
+def dump_reg(self, cpustate, tb, hook, reg=0, dump=0, label=None, **kwargs):
+    if reg == -1:
+        R = cpustate.env_ptr.regs
+        regs_dump = """pc:  %08x      lr:  %08x      sp:  %08x
+r0:  %08x      r1:  %08x      r2:  %08x
+r3:  %08x      r4:  %08x      r5:  %08x
+r6:  %08x      r7:  %08x      r8:  %08x
+r9:  %08x      r10: %08x      r11: %08x
+r12: %08x""" % (R[15], R[14], R[13], R[0], R[1], R[2], R[3], R[4], R[5], R[6], R[7], R[8], R[9], R[10], R[11], R[12])
+        log_emit(self, cpustate, regs_dump)
+        if dump:
+            log_emit(self, cpustate, memory_hexdump(cpustate, R[13], n=dump))
+    else:
+        try:
+            r = cpustate.env_ptr.regs[reg]
+
+            if label:
+                log_emit(self, cpustate, f"{label}: r{reg} => {r:#010x}")
+            else:
+                log_emit(self, cpustate, f"r{reg} => {r:#010x}")
+
+            if dump:
+                log_emit(self, cpustate, memory_hexdump(cpustate, r, n=dump))
+        except Exception:
+            pass
 
 
 ###############################

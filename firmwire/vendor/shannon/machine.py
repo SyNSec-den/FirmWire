@@ -411,7 +411,7 @@ r12: %08x     cpsr: %08x""" % (
             gdb_port=self.ports["qemu_gdb"],
             qmp_port=self.ports["qemu_qmp"],
             entry_address=self.modem_soc.ENTRY_ADDRESS,
-            log_file="/dev/stdout",
+            log_file=self.workspace.path("/qemu.log").to_path().as_posix(),
             additional_args=additional_args,
             log_items=log_items if len(log_items) else None,
         )

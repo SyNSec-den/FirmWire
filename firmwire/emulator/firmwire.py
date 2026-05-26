@@ -307,11 +307,14 @@ class FirmWireEmu(ABC):
             if not isinstance(hook["address"], list):
                 hook["address"] = [hook["address"]]
 
+            if "kwargs" not in hook:
+                hook["kwargs"] = {}
+
             for addr in hook["address"]:
                 if hook.get("gdb", False) is True:
                     self.set_breakpoint(addr, hook["handler"])
                 else:
-                    self.add_panda_hook(addr, hook["handler"])
+                    self.add_panda_hook(addr, hook["handler"], **hook["kwargs"])
 
     def add_panda_hook(self, address, hook, **kwargs):
         """Create a PANDA hook with FirmWireMachine context"""

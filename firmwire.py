@@ -250,7 +250,9 @@ def main() -> int:
         return 1
 
     machine = loader.get_machine()
-    machine.modkit.append_search_path("./modkit/%s/build" % (loader.NAME))
+    machine.modkit.append_search_path(
+        f"{os.path.dirname(__file__)}/modkit/{loader.NAME}/build"
+    )
     machine.modkit.append_search_path("./")
 
     log.info("FirmWire initializing %s", type(machine).__name__)

@@ -392,4 +392,174 @@ PATTERNS_CORTEX_A = {
         "required": False,
         "soc_match": ["S5123"],
     },
+    # "SMPF task is not created yet. Message(%s) is inserted to pending array"
+    "fake_test": {
+        "pattern": [
+            "2de9f043 83b0 0446 a068 10f4007f 43d1 4cf21401 c4f28171 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-ap2a.240905.003.f1
+            "2de9f043 83b0 0446 a068 10f4007f 43d1 42f21451 c4f28271 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-bp2a.250605.031.a5
+            "2de9f043 83b0 0446 a068 10f4007f 43d1 4cf21401 c4f28171 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-ap2a.240805.005.f1
+            "2de9f043 83b0 0446 a068 10f4007f 43d1 47f29401 c4f28171 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-uq1a.240205.002
+            "2de9f043 83b0 0446 a068 10f4007f 43d1 41f6d411 c4f28271 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-bp1a.250505.005
+
+            "2de9f047 84b0 4bf68827 0446 c4f2b627 3868 0390 a068 10f4007f 43d1 4df64071 c4f2cc41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSCGXF5
+            "2de9f047 84b0 4df6c057 0446 c4f2b727 3868 0390 a068 10f4007f 43d1 40f22031 c4f2ce41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSIHYK1
+            "2de9f047 84b0 4df2f057 0446 c4f2b727 3868 0390 a068 10f4007f 43d1 4ff62031 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXUEHYD5
+            "2de9f047 84b0 4ef2d837 0446 c4f2b627 3868 0390 a068 10f4007f 43d1 40f6c001 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXUEGXJE
+            "2de9f047 84b0 4ff29847 0446 c4f2b627 3868 0390 a068 10f4007f 43d1 41f68011 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXUCGXGC
+            "2de9f047 84b0 4df6a057 0446 c4f2b727 3868 0390 a068 10f4007f 43d1 40f2e021 c4f2ce41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSHHYJ1
+            "2de9f047 84b0 4df2f057 0446 c4f2b727 3868 0390 a068 10f4007f 43d1 4ff62031 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSGHYH1
+            "2de9f047 84b0 4df2f057 0446 c4f2b727 3868 0390 a068 10f4007f 43d1 4ff62031 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSFHYE1
+            "2de9f047 84b0 4ff25807 0446 c4f2b627 3868 0390 a068 10f4007f 43d1 41f26051 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSEGXL2
+            "2de9f047 84b0 4ff2d857 0446 c4f2b627 3868 0390 a068 10f4007f 43d1 41f6c021 c4f2cd41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSDGXI5
+
+            "2de9???? ??b0 ?* 0446 ?* 10f4007f 43d1 ???????? c4f2???? 0978 0029 40d0 617b 4029 01d3 0021 6173"
+        ],
+        "soc_match": ["S5123","S5123AP"],
+    },
+    # lookup handler creation
+    # 44ccdf40 - G991BXXSCGXF5
+    # 478219d4 - oriole-bp1a.250505.005
+    # decode the movw and movt:
+    #   420d5240 41 f6 d4 11     movw       r1,#0x19d4
+    #   420d5244 c4 f2 82 71     movt       r1,#0x4782
+    "SMPF_TASK_CREATED": {
+        "lookup": handlers.find_smpf_task_created,
+        "soc_match": ["S5123","S5123AP"],
+    },
+    # G991B: Security Header Check: "[N :MM,%d]  Allowed Plain Nas message rcvd" if fake_test_harness() != 0
+    # => Could result in OS Fatal Error Call?
+    "fake_test_harness": {
+        "pattern": [
+            "10b5 4ff23c04 c4f26774 2068 00b1 10bd 4ff6fb71 0c20 8722 0023 c4f21a11 fcf722f8 edf4f3f0 2060 10bd", # oriole-ap2a.240905.003.f1
+            "10b5 45f23c44 c4f26874 2068 00b1 10bd 40f2ff51 0c20 8722 0023 c4f21b11 fbf76ffc ebf484f3 2060 10bd", # oriole-bp2a.250605.031.a5
+            "10b5 4ff23c04 c4f26774 2068 00b1 10bd 4ff6fb71 0c20 8722 0023 c4f21a11 fcf722f8 edf4f3f0 2060 10bd", # oriole-ap2a.240805.005.f1
+            "10b5 4af2bc04 c4f26774 2068 00b1 10bd 4ff63331 0c20 8722 0023 c4f21a11 fcf786fe edf413f4 2060 10bd", # oriole-uq1a.240205.002
+            "10b5 44f6fc04 c4f26874 2068 00b1 10bd 40f2ff51 0c20 8722 0023 c4f21b11 fbf76ffc ebf474f3 2060 10bd", # oriole-bp1a.250505.005
+
+            "10b5 4ef68474 c4f2bb44 2068 00b1 10bd 43f2e851 0c20 8722 0023 c4f27401 80f0d6fc c5f619f0 2060 10bd", # G991BXXSIHYK1
+            "10b5 4cf6c434 c4f2ba44 2068 00b1 10bd 41f68171 0c20 8722 0023 c4f27401 79f0a8fc c2f68df7 2060 10bd", # G991BXXSCGXF5
+            "10b5 4ef28474 c4f2bb44 2068 00b1 10bd 43f2e851 0c20 8722 0023 c4f27401 80f0fbff c5f6d9f3 2060 10bd", # G991BXXUEHYD5
+            "10b5 4ff24454 c4f2ba44 2068 00b1 10bd 42f2d811 0c20 8722 0023 c4f27401 7af04dff c2f6a5f7 2060 10bd", # G991BXXUEGXJE
+            "10b5 40f20464 c4f2bb44 2068 00b1 10bd 42f2b811 0c20 8722 0023 c4f27401 7bf0a1fe c2f6fff7 2060 10bd", # G991BXXUCGXGC
+            "10b5 4ef64474 c4f2bb44 2068 00b1 10bd 43f2e851 0c20 8722 0023 c4f27401 80f0d6fc c5f619f0 2060 10bd", # G991BXXSHHYJ1
+            "10b5 4ef28474 c4f2bb44 2068 00b1 10bd 43f2e851 0c20 8722 0023 c4f27401 80f0d6fc c5f619f0 2060 10bd", # G991BXXSGHYH1
+            "10b5 4ef28474 c4f2bb44 2068 00b1 10bd 43f2e851 0c20 8722 0023 c4f27401 80f0fbff c5f6d9f3 2060 10bd", # G991BXXSFHYE1
+            "10b5 40f2c414 c4f2bb44 2068 00b1 10bd 42f2c651 0c20 8722 0023 c4f27401 7af0ebff c2f6a9f7 2060 10bd", # G991BXXSEGXL2
+            "10b5 40f24474 c4f2bb44 2068 00b1 10bd 42f2b811 0c20 8722 0023 c4f27401 7bf0a1fe c2f6fff7 2060 10bd", # G991BXXSDGXI5
+        ],
+        "soc_match": ["S5123","S5123AP"],
+    },
+    # "[N :MM,%d]    SetMmState = %lx %lx"
+    # G991B: Searching back through to rediscover the cn::mm::MmGeneralContext_MacroClass::vtable via "../../../SMPF/Protocol/CoreNetwork/MM/Context/cn_MmContextProvider.hpp" in cn_MmContextProvider__MmContext
+    "SetMmState": {
+        "pattern": [
+            "2de9f043 85b0 0446 43f29c20 1d46 1646 c4f2bb40 0390 21f6dbdd 42f66638 48ea8040 0490 96f5eadc 4bf69829 0146 2a46 3346 cff6cd69 cde90099 03a8 eff5cef1 2746 57f8281f 7b68", # oriole-ap2a.240905.003.f1
+            "2de9f043 85b0 0446 49f24070 1d46 1646 c4f2bb40 0390 21f6e5dc 42f66638 48ea8040 0490 95f5e6df 4bf69829 0146 2a46 3346 cff6cd69 cde90099 03a8 f1f500f0 2746 57f8281f 7b68", # oriole-bp2a.250605.031.a5
+            "2de9f043 85b0 0446 43f29c20 1d46 1646 c4f2bb40 0390 21f6dbdd 42f66638 48ea8040 0490 96f5eadc 4bf69829 0146 2a46 3346 cff6cd69 cde90099 03a8 eff5cef1 2746 57f8281f 7b68", # oriole-ap2a.240805.005.f1
+            "2de9f043 85b0 0446 4ef27420 1d46 1646 c4f2ba40 0390 23f6eddf 42f66638 48ea8040 0490 96f51cdb 4bf69829 0146 2a46 3346 cff6cd69 cde90099 03a8 eff52ef6 2746 57f8281f 7b68", # oriole-uq1a.240205.002
+            "2de9f043 85b0 0446 48f60040 1d46 1646 c4f2bb40 0390 21f6e3df 42f66638 48ea8040 0490 96f5e6da 4bf69829 0146 2a46 3346 cff6cd69 cde90099 03a8 f1f5faf2 2746 57f8281f 7b68", # oriole-bp1a.250505.005
+
+            "2de9f047 86b0 4df6c058 0446 1d46 1646 c4f2b728 d8f80000 0590 43f6ec30 c4f2d820 0390 6ff48ff5 42f64639 49ea8040 0490 5cf7a3dc 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a9f5fffb 2746 57f8281f 7b68", # G991BXXSIHYK1
+            "2de9f047 86b0 4bf68828 0446 1d46 1646 c4f2b628 d8f80000 0590 41f27050 c4f2d720 0390 73f4b7f7 42f64639 49ea8040 0490 60f72cda 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 acf598fa 2746 57f8281f 7b68", # G991BXXSCGXF5
+            "2de9f047 86b0 4df2f058 0446 1d46 1646 c4f2b728 d8f80000 0590 43f2ec30 c4f2d820 0390 6ff479f5 42f64639 49ea8040 0490 5cf7cbdb 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a9f5edfb 2746 57f8281f 7b68", # G991BXXUEHYD5
+            "2de9f047 86b0 4ef2d838 0446 1d46 1646 c4f2b628 d8f80000 0590 43f69870 c4f2d720 0390 73f49bf6 42f64639 49ea8040 0490 5ff704dd 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 abf5a6f8 2746 57f8281f 7b68", # G991BXXUEGXJE
+            "2de9f047 86b0 4ff29848 0446 1d46 1646 c4f2b628 d8f80000 0590 45f23c00 c4f2d720 0390 71f459f2 42f64639 49ea8040 0490 5df78bda 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a8f5d2fc 2746 57f8281f 7b68", # G991BXXUCGXGC
+            "2de9f047 86b0 4df6a058 0446 1d46 1646 c4f2b728 d8f80000 0590 43f6ac30 c4f2d820 0390 6ff495f5 42f64639 49ea8040 0490 5cf7a9dc 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a9f5fdfb 2746 57f8281f 7b68", # G991BXXSHHYJ1
+            "2de9f047 86b0 4df2f058 0446 1d46 1646 c4f2b728 d8f80000 0590 43f2ec30 c4f2d820 0390 6ff483f5 42f64639 49ea8040 0490 5cf79fdc 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a9f5f7fb 2746 57f8281f 7b68", # G991BXXSGHYH1
+            "2de9f047 86b0 4df2f058 0446 1d46 1646 c4f2b728 d8f80000 0590 43f2ec30 c4f2d820 0390 6ff479f5 42f64639 49ea8040 0490 5cf7cbdb 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a9f5edfb 2746 57f8281f 7b68", # G991BXXSFHYE1
+            "2de9f047 86b0 4ff25808 0446 1d46 1646 c4f2b628 d8f80000 0590 44f64c50 c4f2d720 0390 73f475f7 42f64639 49ea8040 0490 5ff7b8de 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 abf58cf9 2746 57f8281f 7b68", # G991BXXSEGXL2
+            "2de9f047 86b0 4ff2d858 0446 1d46 1646 c4f2b628 d8f80000 0590 45f27c10 c4f2d720 0390 71f439f2 42f64639 49ea8040 0490 5df769da 4bf6982a 0146 2a46 3346 cff6cd6a cde900aa 03a8 a9f5d0fe 2746 57f8281f 7b68", # G991BXXSDGXI5
+        ],
+        "soc_match": ["S5123","S5123AP"],
+    },
+    # "[N :MM,%d]  Start Procedure : %d" and calls NrmmStartProcedure
+    "NrmmStartProcedure_Wrapper": {
+        "pattern": [
+            "b0b5 0c46 0546 0129 03d1 2846 0221 eaf723fe e86c 2146 bde8b040 c7f57dbe", # oriole-ap2a.240905.003.f1
+            "b0b5 0c46 0546 0129 03d1 2846 0221 ebf7c5fe e86c 2146 bde8b040 c6f50abd", # oriole-bp2a.250605.031.a5
+            "b0b5 0c46 0546 0129 03d1 2846 0221 eaf723fe e86c 2146 bde8b040 c7f57dbe", # oriole-ap2a.240805.005.f1
+            "b0b5 0c46 0546 0129 03d1 2846 0221 e9f7c4f8 e86c 2146 bde8b040 c8f572b8", # oriole-uq1a.240205.002
+            "b0b5 0c46 0546 0129 03d1 2846 0221 ebf7c5fe e86c 2146 bde8b040 c6f5f0bc", # oriole-bp1a.250505.005
+
+            "b0b5 0c46 0546 012c 03d1 2846 0221 d8f744f8 e86c 2146 bde8b040 c9f6b1b2", # G991BXXSIHYK1
+            "b0b5 0c46 0546 012c 03d1 2846 0221 cbf72efc e86c 2146 bde8b040 c7f625b2", # G991BXXSCGXF5
+            "b0b5 0c46 0546 012c 03d1 2846 0221 d8f7befa e86c 2146 bde8b040 c9f671b6", # G991BXXUEHYD5
+            "b0b5 0c46 0546 012c 03d1 2846 0221 ccf79afe e86c 2146 bde8b040 c7f63db2", # G991BXXUEGXJE
+            "b0b5 0c46 0546 012c 03d1 2846 0221 cef73ef8 e86c 2146 bde8b040 c7f697b2", # G991BXXUCGXGC
+            "b0b5 0c46 0546 012c 03d1 2846 0221 d8f744f8 e86c 2146 bde8b040 c9f6b1b2", # G991BXXSHHYJ1
+            "b0b5 0c46 0546 012c 03d1 2846 0221 d8f744f8 e86c 2146 bde8b040 c9f6b1b2", # G991BXXSGHYH1
+            "b0b5 0c46 0546 012c 03d1 2846 0221 d8f7befa e86c 2146 bde8b040 c9f671b6", # G991BXXSFHYE1
+            "b0b5 0c46 0546 012c 03d1 2846 0221 ccf79cfe e86c 2146 bde8b040 c7f641b2", # G991BXXSEGXL2
+            "b0b5 0c46 0546 012c 03d1 2846 0221 cef73ef8 e86c 2146 bde8b040 c7f697b2", # G991BXXSDGXI5
+
+            "b0b5 0c46 0546 ???? 03d1 2846 0221 ???????? e86c 2146 bde8b040 ????????",
+        ],
+        "soc_match": ["S5123","S5123AP"],
+    },
+    "MM_MSG_CLASS": {
+        "lookup": handlers.find_mm_msg_class,
+        "soc_match": ["S5123","S5123AP"],
+    },
+    "MM_MSG_DOMAIN": {
+        "lookup": handlers.find_mm_msg_domain,
+        "soc_match": ["S5123","S5123AP"],
+    },
+    "NrmmFacade": { #placeholder
+        "pattern": [
+            "10b5 44f27c52 44f66023 0446 0020 c4f23102 c4f23103 0832 0833 c4e90020 c4e90200 c4e90403 c4e90610 04f12000", # oriole-ap2a.240905.003.f1
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # oriole
+
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSDGXI5
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSEGXL2
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSFHYE1
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSGHYH1
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXUEGXJE_CP28097318_MQB88157872_REV01_user_low_ship_MULTI_CERT
+        ],
+        "soc_match": ["S5123", "S5123AP"],
+    },
+    "CreateNrmmFacade_func": { #returns NrmmFacade
+        "pattern": [
+            "10b5 44f27c52 44f66023 0446 0020 c4f23102 c4f23103 0832 0833 c4e90020 c4e90200 c4e90403 c4e90610 04f12000", # oriole-ap2a.240905.003.f1
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # oriole
+
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSDGXI5
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSEGXL2
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSFHYE1
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXSGHYH1
+            "10b5 ???????? ???????? 0446 0020 ???????? ???????? 0832 0833 ???????? ???????? ???????? ???????? ????????", # CP_G991BXXUEGXJE_CP28097318_MQB88157872_REV01_user_low_ship_MULTI_CERT
+        ],
+        "soc_match": ["S5123","S5123AP"],
+    },
+    "MmGeneralContext": { #placeholder
+        "pattern": [
+            "b0b5 0446 45f23800 1121 c4f23100 0830 2060 04f13c00 caf082c0 0020 5021 a4f8ba00 84f8b800 c4f8bc00", # oriole-ap2a.240905.003.f1
+            "b0b5 0446 45f23800 1121 c4f23100 0830 2060 04f13c00 caf082c0 0020 5021 a4f8ba00 84f8b800 c4f8bc00", # oriole-ap2a.240805.005.f1
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0020 5021 ???????? ???????? ????????", # oriole-bp1a.250505.005
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0020 5021 ???????? ???????? ????????", # oriole-bp2a.250605.031.a5
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0020 5021 ???????? ???????? ????????", # oriole-uq1a.240205.002
+
+            "b0b5 0446 40f25c00 1121 c4f23000 0830 2060 04f13c00 eef0c2c7 0025 04f16600 5021 a4f8ba50", # CP_G991BXXSDGXI5
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXSEGXL2
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXSFHYE1
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXSGHYH1
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXUEGXJE_CP28097318_MQB88157872_REV01_user_low_ship_MULTI_CERT
+        ],
+        "soc_match": ["S5123", "S5123AP"],
+    },
+    "CreateMmGeneralContext_func": { #returns MmGeneralContext
+        "pattern": [
+            "b0b5 0446 45f23800 1121 c4f23100 0830 2060 04f13c00 caf082c0 0020 5021 a4f8ba00 84f8b800 c4f8bc00", # oriole-ap2a.240905.003.f1
+            "b0b5 0446 45f23800 1121 c4f23100 0830 2060 04f13c00 caf082c0 0020 5021 a4f8ba00 84f8b800 c4f8bc00", # oriole-ap2a.240805.005.f1
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0020 5021 ???????? ???????? ????????", # oriole-bp1a.250505.005
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0020 5021 ???????? ???????? ????????", # oriole-bp2a.250605.031.a5
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0020 5021 ???????? ???????? ????????", # oriole-uq1a.240205.002
+
+            "b0b5 0446 40f25c00 1121 c4f23000 0830 2060 04f13c00 eef0c2c7 0025 04f16600 5021 a4f8ba50", # CP_G991BXXSDGXI5
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXSEGXL2
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXSFHYE1
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXSGHYH1
+            "b0b5 0446 ???????? 1121 ???????? 0830 2060 ???????? ???????? 0025 ???????? 5021 ????????", # CP_G991BXXUEGXJE_CP28097318_MQB88157872_REV01_user_low_ship_MULTI_CERT
+        ],
+        "soc_match": ["S5123", "S5123AP"],
+    }
 }

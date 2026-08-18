@@ -716,6 +716,63 @@ def handle_IRQ(self, cpustate, tb, hook):
 def handle_FIQ(self, cpustate, tb, hook):
     return False
 
+def handle_NrmmFacade(self, cpustate, tb, hook):
+    lr = cpustate.env_ptr.regs[14]
+
+    def handle_return(cpustate, lr_tb, lr_hook):
+        # After NrmmFacade returns, r0 contains return value.
+        result = cpu.env_ptr.regs[0]
+
+        log.info(
+            "CreateNrmmFacade_func returned 0x%08x (%d)",
+            result,
+            result,
+        )
+
+        lr_hook.enabled = False
+        self.symbol_table.lookup("NrmmFacade").address = result
+ 
+        log.info(
+            "NrmmFacade contains 0x%08x (%d)",
+            self.symbol_table.lookup("NrmmFacade").address,
+            self.symbol_table.lookup("NrmmFacade").address,
+        )
+        return False
+
+    self.qemu.add_hook(lr, handle_return)
+
+
+    # Returning from the Python callback lets NrmmFacade execute normally.
+    return False
+
+def handle_MmGeneralContext(self, cpustate, tb, hook):
+    lr = cpustate.env_ptr.regs[14]
+
+    def handle_return(cpustate, lr_tb, lr_hook):
+        # After NrmmFacade returns, r0 contains return value.
+        result = cpu.env_ptr.regs[0]
+
+        log.info(
+            "CreateMmGeneralContext_func returned 0x%08x (%d)",
+            result,
+            result,
+        )
+
+        lr_hook.enabled = False
+        self.symbol_table.lookup("MmGeneralContext").address = result
+ 
+        log.info(
+            "MmGeneralContext contains 0x%08x (%d)",
+            self.symbol_table.lookup("MmGeneralContext").address,
+            self.symbol_table.lookup("MmGeneralContext").address,
+        )
+        return False
+
+    self.qemu.add_hook(lr, handle_return)
+
+
+    # Returning from the Python callback lets NrmmFacade execute normally.
+    return False
 
 ##########################################################
 ## HOOKS END

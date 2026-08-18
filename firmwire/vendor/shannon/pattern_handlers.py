@@ -998,3 +998,151 @@ def find_LteRrcBoolPrintLog(self, sym, data, offset):
     self.symbol_table.remove(sym.name)
     self.symbol_table.add(sym.name, new_address)
     return True
+
+def find_smpf_task_created(data, offset):
+    # "2de9f043 83b0 0446 a068 10f4007f 43d1 47f29401 c4f28171 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-uq1a.240205.002
+    # "2de9f043 83b0 0446 a068 10f4007f 43d1 41f6d411 c4f28271 0978 0029 40d0 617b 4029 01d3 0021 6173", # oriole-bp1a.250505.005
+
+    # "2de9f047 84b0 4bf68827 0446 c4f2b627 3868 0390 a068 10f4007f 43d1 4df64071 c4f2cc41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSCGXF5
+    # "2de9f047 84b0 4df6c057 0446 c4f2b727 3868 0390 a068 10f4007f 43d1 40f22031 c4f2ce41 0978 0029 40d0 617b 4029 01d3 0021 6173", # G991BXXSIHYK1
+
+    # Find the movw and movt instructions forming address used in ldrb instruction: 0x7809
+
+    bp = BinaryPattern("smpf_task_created_addr")
+    bp.from_hex("0978 0029 40d0 617b 4029 01d3 0021 6173")
+
+    locs = bp.findall(data)
+    assert len(locs) == 1, f"Found more than one instance or failed to find any ({len(locs)})"
+
+    # movw
+    offset = locs[0][0] - 8 
+    insn1 = data[offset: offset + 4]
+    insn1 = struct.unpack("<I", insn1)[0]
+    addr_w = decode_movw(insn1)
+
+    # movt
+    insn2 = data[offset + 4: offset + 8]
+    insn2 = struct.unpack("<I", insn2)[0]
+    addr_t = decode_movw(insn2)
+
+    addr = (addr_t << 16) | addr_w
+    return addr
+
+
+
+# find_mm_msg_class: Search for the following handler function signature compare loop
+
+    # 41bab586 b4 f5 16 7f     cmp.w      r4,#0x258
+    # 41bab58a 22 46           mov        r2,r4
+    # 41bab58c 39 46           mov        param_1,p_ded_nas_info
+    # 41bab58e 43 46           mov        r3=>SUB_fecdba98,r8
+    # 41bab590 04 90           str        this,[sp,#local_28]
+    # 41bab592 28 bf           it         cs
+    # 41bab594 4f f4 16 72     mov.cs.w   r2,#0x258
+
+def find_mm_msg_class(self, sym, data, offset):
+
+    # Obtaining .node_id matching handler func: MM_RRC_DATA_IND_Handler
+    # Take add.w instruction closest to assignment and take the immediate out. 
+    # Have the start of the pattern be the movw instruction,
+    # and find the next movt instruction that uses the same register eventually used in add.w.
+
+    # Oriole Pattern:
+    # 40f23b0b c4f23101 c4f2ba12 c0f2c14b 01f10806 0660 616c c0f80ca0 c0e90112 2860 85f804a0 0295 cdf804b0 01a9 4046 09f1e3f5 0820 3946 4c22 0023 75f3a2f6 0546 1020 ?+ ?+ 616c c4f2ba12 c0f80ca0 c0e90112 2860 40f21e40 85f804a0 0295 c0f2c140 2130 0190 01a9 4046 09f17af5 0820 3946 4f22 0023 75f339f6 0546 1020 4946 e922 8ef0c4d9 0660 4bf2e942 616c c4f2ba12 c0f80ca0 c0e90112 2860 0bf10500 85f804a0 0295 0190 01a9 4046 # oriole-ap2a.240905.003.f1
+    # 40f23b0b c4f23101 c4f2ba12 c0f2c14b 01f10806 0660 616c c0f80ca0 c0e90112 2860 85f804a0 0295 cdf804b0 01a9 4046 09f1e3f5 0820 3946 4c22 0023 75f3a2f6 0546 1020 ?+ 4946 e922 8ef0c4d9 0660 4bf2e942 616c c4f2ba12 c0f80ca0 c0e90112 2860 0bf10500 85f804a0 0295 0190 01a9 404609f159f5
+    # 40f23b0b c4f23101 c4f2ba12 c0f2c14b 01f10806 0660 616c c0f80ca0 c0e90112 2860 85f804a0 0295 cdf804b0 01a9 4046 08f112f4 0820 3946 4c22 0023 77f366f5 0546 1020 ... c4f2ba12 c0f80ca0 c0e90112 2860 0bf10500 85f804a0 0295 0190 # oriole-bp2a.250605.031.a5
+
+    # G991B Pattern:
+
+    # 4ef27e00 2c71 0195 6946 c0f24040 0090 8146 4046 a0f17af7 0820 3946 4d22 0023 41f22af5 0546 1020 ?+ ?+ 09f10600 2c71 0195 6946 0090 4046 a0f13af7 0820 3946 4f22 0023 41f2eaf4 0546 1020 5146 e922 d7f238f5 0660 47f2d162 dbf84410 c4f2dc02 c460 c0e90112 2860 09f58160 2c71 0195 6946 0090 4046 a0f11af7 0820 3946 5022 0023 41f2caf4 0546 1020 5146 e922 d7f218f5 0660 47f65d22 dbf84410 c4f2dc02 c460 c0e90112 2860 09f10900 2c71 0195 6946 0090 4046 # G991BXXSCGXF5
+    # ???????? 2c71 0195 6946 ???????? 0090 8146 4046 ???????? 0820 3946 4d22 0023 ???????? 0546 1020 ?+ ?+ ???????? 2c71 0195 6946 0090 4046 ???????? 0820 3946 4f22 0023 ???????? 0546 1020 5146 e922 ???????? 0660 ???????? ???????? ???????? c460 ???????? 2860 ???????? 2c71 0195 6946 0090 4046 ???????? 0820 3946 5022 0023 ???????? 0546 1020 5146 e922 ???????? 0660 ???????? ???????? ???????? c460 ???????? 2860 ???????? 2c71 0195 6946 0090 4046 # G991BXXSCGXF5 & CP_G991BXXSEGXL2
+    # 4ef27e00 2c71 0195 6946 c0f24040 0090 8146 4046 9cf137f2 0820 3946 4d22 0023 46f2b4f6 0546 1020 ...    # G991BXXSIHYK1
+
+    # 40f23b0b c4f23101 c4f2ba12 c0f2c14b 01f10806 0660 616c c0f80ca0 c0e90112 2860 85f804a0 0295 cdf804b0 01a9 4046 09f1e3f5 0820 3946 4c22 0023 75f3a2f6 0546 1020 ?+ ?+ 616c c4f2ba12 c0f80ca0 c0e90112 2860 40f21e40 85f804a0 0295 c0f2c140 2130 0190 01a9 4046 09f17af5 0820 3946 4f22 0023 75f339f6 0546 1020 4946 e922 8ef0c4d9 0660 4bf2e942 616c c4f2ba12 c0f80ca0 c0e90112 2860 0bf10500 85f804a0 0295 0190 01a9 4046 
+    # ???????? 2c71 0195 6946 ???????? 0090 8146 4046 ???????? 0820 3946 4d22 0023 ???????? 0546 1020 ?+ ?+ ???????? 2c71 0195 6946 0090 4046 ???????? 0820 3946 4f22 0023 ???????? 0546 1020 5146 e922 ???????? 0660 ???????? ???????? ???????? c460 ???????? 2860 ???????? 2c71 0195 6946 0090 4046 ???????? 0820 3946 5022 0023 ???????? 0546 1020 5146 e922 ???????? 0660 ???????? ???????? ???????? c460 ???????? 2860 ???????? 2c71 0195 6946 0090 4046
+
+    # ???????? ?* 0820 3946 ??22 0023 ???????? 0546 1020 ?+ ?+ 4046 ?+ 0546 1020 ?+ e922 ???????? 0660 ?+ 2860 ?+ 4046
+    # ??f2???? ?+ 4046 ???????? 0820 3946 ??22 0023 ???????? 0546 1020 ?+ 4046 ???????? 0820 3946 4f22 0023 ???????? 0546 1020 ???? e922 ???????? 0660 ?+ 2860 ?+ 4046
+
+
+
+    # c0f24040 0090 8146 4046 a0f17af7 0820 3946 4d22 0023 41f22af5 0546 1020 ?+ ?+ 09f10600 2c71 0195 6946 0090 4046 a0f13af7 0820 3946 4f22 0023 41f2eaf4 0546 1020 5146 e922 d7f238f5 0660 47f2d162 dbf84410 c4f2dc02 c460 c0e90112 2860 09f58160 2c71 0195 6946 0090 4046 a0f11af7 0820 3946 5022 0023 41f2caf4 0546 1020 5146 e922 d7f218f5 0660 47f65d22 dbf84410 c4f2dc02 c460 c0e90112 2860 09f10900 2c71 0195 6946 0090 4046
+    # 40f23b0b c4f23101 c4f2ba12 c0f2c14b 01f10806 0660 616c c0f80ca0 c0e90112 2860 85f804a0 0295 cdf804b0 01a9 4046 09f1e3f5 0820 3946 4c22 0023 75f3a2f6 0546 1020 ?+ ?+ 616c c4f2ba12 c0f80ca0 c0e90112 2860 40f21e40 85f804a0 0295 c0f2c140 2130 0190 01a9 4046 09f17af5 0820 3946 4f22 0023 75f339f6 0546 1020 4946 e922 8ef0c4d9 0660 4bf2e942 616c c4f2ba12 c0f80ca0 c0e90112 2860 0bf10500 85f804a0 0295 0190 01a9 4046 
+
+
+    # 4b22002375f3ccf6054610204946e9228ef057da4bf604114cf64522 40 f2 3b 0b c4 f2 31 01 c4 f2 ba 12c0f2c14b01f108060660616cc0f80ca0c0e90112286085f804a00295cdf804b001a9404609f1e3f5082039464c22002375f3a2f6054610204946e9228ef02dda06604af2a142616cc4f2ba12c0f80ca0c0e90112286040f21e4085f804a00295c0f2c1401f30019001a9404609f1bff5082039464d22002375f37ef6054610204946e9228ef009da06604bf66772616cc4f2ba12c0f80ca0c0e9011228600bf1030085f804a00295019001a9404609f19ef5082039464e22002375f35df6054610204946e9228ef0e8d906604bf2bd12616cc4f2ba12c0f80ca0c0e90112286040f21e4085f804a00295c0f2c1402130019001a9404609f17af5082039464f22002375f339f6054610204946e9228ef0c4d906604bf2e942616cc4f2ba12c0f80ca0c0e9011228600bf10500 ?* 90 oriole
+    # 4c22002341f253f5054610205146e922d7f2a1f546f6f01149f23102c4f23001c4f2dc0201f108060660dbf84410c460c0e901122860 4e f2 7e 00 2c 71 01 95 69 46 c0 f24040009081464046a0f17af7082039464d22002341f22af5054610205146e922d7f278f5066046f61122dbf84410c4f2dc02c460c0e90112286009f104002c710195694600904046a0f15af7082039464e22002341f20af5054610205146e922d7f258f5066048f2d542dbf84410c4f2dc02c460c0e90112286009f106002c710195694600904046a0f13af7082039464f22002341f2eaf4054610205146e922d7f238f5066047f2d162dbf84410c4f2dc02c460c0e90112286009f581602c710195694600904046a0f11af7082039465022002341f2caf4054610205146e922d7f218f5066047f65d22dbf84410c4f2dc02c460c0e90112286009f10900 ?* 90
+    bp = BinaryPattern("mm_msg_class_addr")
+    
+    # Obtain offset for the end of the pattern
+    bp.from_hex("?? 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?+ ?? ?* ?? ?+ ?? ?? ?? c4 f2 ?? 01 c4 f2 ?+ 01 f1 08 06 06 60 ?+ f8 ?+ c0 e9 01 12 28 60 ?+ 95 ?+ 40 46 ?? f1 ?+ 08 20 39 46 4d 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?? ?? ?? ?? 06 60 ?? ?? ?+ c4 f2 ?+ c0 e9 01 12 28 60 ?? f1 ?? 00 ?+ 95 ?+ 90 ?* 40 46 ?? f1 ?? ?? 08 20 39 46 4e 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?? ?? ?? ?? 06 60 ?? ?? ?+ c4 f2 ?+ c0 e9 01 12 28 60 ?* 40 ?* f2 ?+ f8 ?+ 02 ?* 95 ?+ 90 ?* 40 46 ?? f1 ?? ?? 08 20 39 46 ?? 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?? ?? ?? ?? 06 60 ?+ c4 f2 ?+ c0 e9 01 12 28 60 ?? f1 ?? 00 ?* 90") 
+    
+    locs = bp.findall(data)
+
+    assert len(locs) == 1, f"Found more than one instance or failed to find any ({len(locs)})"
+
+    from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
+    from capstone.arm import ARM_OP_REG
+
+    md = Cs(CS_ARCH_ARM, CS_MODE_THUMB)
+    md.detail = True
+
+    main_toc = self.modem_file.get_section("MAIN")
+    offset = sym.address - main_toc.load_address
+
+    first_ins = next(md.disasm(data[offset:], offset, count=1), None)
+    dst_operand = first_ins.operands[0]
+    movw_register_id = dst_operand.reg
+
+    insn1 = data[offset: offset + 4]
+    insn1 = struct.unpack("<I", insn1)[0]
+    addr_w = decode_movw(insn1)
+
+    # find next movt instruction:
+    for ins in md.disasm(data[offset:], 0x0): # dissasmble with base address 0
+        if ins.mnemonic == "movt" and ins.operands[0].reg == movw_register_id:
+            insn2 = int.from_bytes(ins.bytes, "little")
+            break   
+
+    addr_t = decode_movw(insn2)
+    addr_mov = (addr_t << 16) | addr_w
+
+    # find add.w close to end of pattern
+    offset = locs[0][1] # end
+    search_bytes = data[max(0, offset - 64):offset]
+
+    for ins in md.disasm(search_bytes, 0x0):
+        if ins.mnemonic == "add.w":
+            add_insn = int.from_bytes(ins.bytes, "little")
+    
+    # Using the cortex A documentation file:///home/mutt/Downloads/DDI0406C_arm_architecture_reference_manual.pdf
+    
+    # Example:
+    #     little: 00001001 11110001 00001001 00000000
+    #        big: 00000000 00001001 11110001 00001001
+
+    #  Encoding (little endian): Lower halfword in big endian (15-0); Upper halfword in big endian (15-0)
+    #  Encoding (little endian): 1 1 1 0 i 0 1 0 0 0 S Rn 0 imm3 Rd imm8
+
+    # Should just be able to use the movw immediate decode function, but example:
+
+    lower_encoded_hw_big_endian = add_insn & 0xffff
+    upper_encoded_hw_big_endian = (add_insn >> 0x10) & 0xffff
+    i = (lower_encoded_hw_big_endian >> 10) & 0x1 
+    imm3 = (upper_encoded_hw_big_endian >> 12) & 0x7
+    imm8 = upper_encoded_hw_big_endian & 0xff 
+
+    imm12 = (i << 11) | (imm3 << 8) | imm8
+    imm32_add = thumb_expand_imm(imm12)
+    
+    addr = addr_mov + imm32_add
+
+    self.symbol_table.set("MM_MSG_CLASS", addr)
+    log.info("MM_MSG_CLASS: %#010x", addr)
+
+    return True
+
+def find_mm_msg_domain(self, offset):
+
+    return 0x7fe00400 # constant
+    

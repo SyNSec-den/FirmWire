@@ -886,12 +886,25 @@ r12: %08x     cpsr: %08x""" % (
             )
 
         elif self.modem_soc.name == "S5123":
-            from firmwire.vendor.shannon.hooks import warm_boot_change, protect_write_access
+            from firmwire.vendor.shannon.hooks import warm_boot_change, protect_write_access, handle_NrmmFacade, handle_MmGeneralContext
             new_mappings = [
                 {
                     "name": "warm_boot_change",
                     "address": 0x40010000,
                     "handler": warm_boot_change,
+                },
+            ]
+            self.install_hooks(new_mappings)
+            new_mappings = [
+                {
+                    "name": "CreateNrmmFacade_func",
+                    "address": self.symbol_table.lookup("CreateNrmmFacade_func").address,
+                    "handler": handle_NrmmFacade,
+                },
+                {
+                    "name": "CreateMmGeneralContext_func",
+                    "address": self.symbol_table.lookup("CreateMmGeneralContext_func").address,
+                    "handler": handle_MmGeneralContext,
                 },
             ]
             self.install_hooks(new_mappings)

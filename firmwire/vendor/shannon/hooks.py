@@ -717,61 +717,25 @@ def handle_FIQ(self, cpustate, tb, hook):
     return False
 
 def handle_NrmmFacade(self, cpustate, tb, hook):
-    lr = cpustate.env_ptr.regs[14]
+    r0 = cpustate.env_ptr.regs[0]
+    r1 = cpustate.env_ptr.regs[1]
 
-    def handle_return(cpustate, lr_tb, lr_hook):
-        # After NrmmFacade returns, r0 contains return value.
-        result = cpu.env_ptr.regs[0]
+    self.symbol_table.set("NrmmFacade", r0)
+    log.info("NrmmFacade: %#010x", r0)
+    self.symbol_table.set("MmContext", r1)
+    log.info("MmContext: %#010x", r1)
 
-        log.info(
-            "CreateNrmmFacade_func returned 0x%08x (%d)",
-            result,
-            result,
-        )
-
-        lr_hook.enabled = False
-        self.symbol_table.lookup("NrmmFacade").address = result
- 
-        log.info(
-            "NrmmFacade contains 0x%08x (%d)",
-            self.symbol_table.lookup("NrmmFacade").address,
-            self.symbol_table.lookup("NrmmFacade").address,
-        )
-        return False
-
-    self.qemu.add_hook(lr, handle_return)
-
-
-    # Returning from the Python callback lets NrmmFacade execute normally.
+    hook.enabled = False
     return False
 
 def handle_MmGeneralContext(self, cpustate, tb, hook):
-    lr = cpustate.env_ptr.regs[14]
+    r0 = cpustate.env_ptr.regs[0]
+    addr = r0
 
-    def handle_return(cpustate, lr_tb, lr_hook):
-        # After NrmmFacade returns, r0 contains return value.
-        result = cpu.env_ptr.regs[0]
+    self.symbol_table.set("MmGeneralContext", addr)
+    log.info("MmGeneralContext: %#010x", addr)
 
-        log.info(
-            "CreateMmGeneralContext_func returned 0x%08x (%d)",
-            result,
-            result,
-        )
-
-        lr_hook.enabled = False
-        self.symbol_table.lookup("MmGeneralContext").address = result
- 
-        log.info(
-            "MmGeneralContext contains 0x%08x (%d)",
-            self.symbol_table.lookup("MmGeneralContext").address,
-            self.symbol_table.lookup("MmGeneralContext").address,
-        )
-        return False
-
-    self.qemu.add_hook(lr, handle_return)
-
-
-    # Returning from the Python callback lets NrmmFacade execute normally.
+    hook.enabled = False
     return False
 
 ##########################################################

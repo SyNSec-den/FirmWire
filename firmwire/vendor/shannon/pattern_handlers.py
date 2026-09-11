@@ -1077,9 +1077,8 @@ def find_mm_msg_class(self, sym, data, offset):
     # Obtain offset for the end of the pattern
     bp.from_hex("?? 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?+ ?? ?* ?? ?+ ?? ?? ?? c4 f2 ?? 01 c4 f2 ?+ 01 f1 08 06 06 60 ?+ f8 ?+ c0 e9 01 12 28 60 ?+ 95 ?+ 40 46 ?? f1 ?+ 08 20 39 46 4d 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?? ?? ?? ?? 06 60 ?? ?? ?+ c4 f2 ?+ c0 e9 01 12 28 60 ?? f1 ?? 00 ?+ 95 ?+ 90 ?* 40 46 ?? f1 ?? ?? 08 20 39 46 4e 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?? ?? ?? ?? 06 60 ?? ?? ?+ c4 f2 ?+ c0 e9 01 12 28 60 ?* 40 ?* f2 ?+ f8 ?+ 02 ?* 95 ?+ 90 ?* 40 46 ?? f1 ?? ?? 08 20 39 46 ?? 22 00 23 ?? ?? ?? ?? 05 46 10 20 ?? 46 e9 22 ?? ?? ?? ?? 06 60 ?+ c4 f2 ?+ c0 e9 01 12 28 60 ?? f1 ?? 00 ?* 90") 
     
-    # log.info(sym.address)
     locs = bp.findall(data)
-    log.info(locs)
+
     assert len(locs) == 1, f"Found more than one instance or failed to find any ({len(locs)})"
 
     from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
@@ -1090,7 +1089,6 @@ def find_mm_msg_class(self, sym, data, offset):
 
     main_toc = self.modem_file.get_section("MAIN")
     offset = sym.address - main_toc.load_address
-    # offset = locs[0][0]
 
     first_ins = next(md.disasm(data[offset:], offset, count=1), None)
     dst_operand = first_ins.operands[0]
@@ -1099,8 +1097,8 @@ def find_mm_msg_class(self, sym, data, offset):
     insn1 = data[offset: offset + 4]
     insn1 = struct.unpack("<I", insn1)[0]
     addr_w = decode_movw(insn1)
-    # find next movt instruction:
 
+    # find next movt instruction:
     for ins in md.disasm(data[offset:], 0x0): # dissasmble with base address 0
         if ins.mnemonic == "movt" and ins.operands[0].reg == movw_register_id:
             insn2 = int.from_bytes(ins.bytes, "little")
@@ -1112,7 +1110,7 @@ def find_mm_msg_class(self, sym, data, offset):
     # find add.w close to end of pattern
     offset = locs[0][1] # end
     search_bytes = data[max(0, offset - 64):offset]
-    # log.info(search_bytes)
+
     for ins in md.disasm(search_bytes, 0x0):
         if ins.mnemonic == "add.w":
             add_insn = int.from_bytes(ins.bytes, "little")
@@ -1143,7 +1141,6 @@ def find_mm_msg_class(self, sym, data, offset):
     log.info("MM_MSG_CLASS: %#010x", addr)
 
     return True
-    # return 0
 
 def find_mm_msg_domain(self, offset):
 

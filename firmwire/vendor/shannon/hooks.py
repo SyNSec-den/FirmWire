@@ -716,6 +716,27 @@ def handle_IRQ(self, cpustate, tb, hook):
 def handle_FIQ(self, cpustate, tb, hook):
     return False
 
+def handle_NrmmFacade(self, cpustate, tb, hook):
+    r0 = cpustate.env_ptr.regs[0]
+    r1 = cpustate.env_ptr.regs[1]
+
+    self.symbol_table.set("NrmmFacade", r0)
+    log.info("NrmmFacade: %#010x", r0)
+    self.symbol_table.set("MmContext", r1)
+    log.info("MmContext: %#010x", r1)
+
+    hook.enabled = False
+    return False
+
+def handle_MmGeneralContext(self, cpustate, tb, hook):
+    r0 = cpustate.env_ptr.regs[0]
+    addr = r0
+
+    self.symbol_table.set("MmGeneralContext", addr)
+    log.info("MmGeneralContext: %#010x", addr)
+
+    hook.enabled = False
+    return False
 
 ##########################################################
 ## HOOKS END

@@ -848,7 +848,7 @@ r12: %08x     cpsr: %08x""" % (
 
                 main_task_counter = self.symbol_table.lookup("main_task_counter").address
 
-                from firmwire.vendor.shannon.hooks import warm_boot_change, protect_write_access
+                from firmwire.vendor.shannon.hooks import warm_boot_change, protect_write_access, handle_NrmmFacade, handle_MmGeneralContext
                 new_mem_mappings = [
                     {
                         "start": 0x40008000 | 0x70000000 >> 0x12,
@@ -873,6 +873,20 @@ r12: %08x     cpsr: %08x""" % (
                     },
                 ]
                 self.install_mem_hooks(new_mem_mappings)
+                new_mappings = [
+                {
+                    "name": "CreateNrmmFacade_func",
+                    "address": self.symbol_table.lookup("CreateNrmmFacade_func").address,
+                    "handler": handle_NrmmFacade,
+                },
+                {
+                    "name": "CreateMmGeneralContext_func",
+                    "address": self.symbol_table.lookup("CreateMmGeneralContext_func").address,
+                    "handler": handle_MmGeneralContext,
+                },
+                ]
+                self.install_hooks(new_mappings)
+                
 
                 uart_periph = self.peripheral_map["uart2"]
                 uart_periph.status = 0x10
